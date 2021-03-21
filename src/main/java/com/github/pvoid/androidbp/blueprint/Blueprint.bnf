@@ -1,0 +1,74 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+{
+    parserClass="com.github.pvoid.androidbp.blueprint.parser.BlueprintParser"
+    parserUtilClass="com.github.pvoid.androidbp.blueprint.parser.BlueprintParserUtil"
+
+    extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+    psiClassPrefix="Blueprint"
+    psiImplClassSuffix="Impl"
+    psiPackage="com.github.pvoid.androidbp.blueprint.psi"
+    psiImplPackage="com.github.pvoid.androidbp.blueprint.impl"
+
+    elementTypeHolderClass="com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes"
+    elementTypeClass="com.github.pvoid.androidbp.blueprint.BlueprintElementType"
+    tokenTypeClass="com.github.pvoid.androidbp.blueprint.BlueprintTokenType"
+
+    psiImplUtilClass="com.github.pvoid.androidbp.blueprint.BlueprintPsiUtilsMirror"
+
+    tokens = [
+        OBJECT_START='{'
+        OBJECT_END='}'
+        ARRAY_START='['
+        ARRAY_END=']'
+        PLUS='+'
+        PLUS_EQUALS='+='
+        ELEMENT_SEPARATOR=','
+    ]
+}
+
+
+
+blueprintFile ::= item_*
+
+private item_ ::= (blueprint|variable|COMMENT|WHITE_SPACE)
+
+blueprint ::= blueprint_type OBJECT_START members? OBJECT_END { methods=[getBlueprintName] pin=1 }
+
+blueprint_type ::= BLUEPRINT_TYPE
+
+object ::= OBJECT_START members? OBJECT_END
+
+array ::= ARRAY_START elements? ARRAY_END
+
+array_expr ::= array (PLUS array)*
+
+
+members ::= pair (ELEMENT_SEPARATOR pair)* ELEMENT_SEPARATOR? { recoverWhile="members_recover" }
+
+private members_recover ::= !(OBJECT_END)
+
+elements ::= array_element (ELEMENT_SEPARATOR array_element)* ELEMENT_SEPARATOR?  { recoverWhile="elements_recover" }
+
+private elements_recover ::= !(ARRAY_END)
+
+array_element ::= (STRING|BOOL|NUMBER|VARIABLE_NAME|LINK) // TODO: Create dedicated tokens for STRING, FILE and LINK
+
+pair ::= field_name EQUALS value { recoverWhile="pair_statement_recover" pin=3 methods=[ getFieldDef ] }
+
+field_name ::= FIELD_NAME { methods=[isBlueprintField getFieldBlueprint] }
+
+private pair_statement_recover ::= !(WHITE_SPACE | ELEMENT_SEPARATOR | OBJECT_END)
+
+string_expr ::= STRING (PLUS STRING)* { methods=[getValue] }
+
+value ::= (string_expr|array_expr|object|BOOL|NUMBER|variable_ref_expr)
+
+variable ::= VARIABLE_NAME (PLUS_EQUALS|EQUALS) value { pin=1 }
+
+variable_ref_expr ::= VARIABLE_VALUE (PLUS value)?

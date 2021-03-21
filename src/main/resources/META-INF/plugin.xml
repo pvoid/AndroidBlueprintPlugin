@@ -1,0 +1,55 @@
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  -->
+
+<idea-plugin>
+    <id>com.github.pvoid.androidbp</id>
+    <name>AOSP Blue Prints Support</name>
+    <vendor email="pointervoid@gmail.com" url="https://github.com/pvoid/AndroidBlueprintPlugin">Dmitry PVOID Petukhov</vendor>
+
+    <description><![CDATA[
+    Adds support for android blueprints and allows to develop android apps as a part of ths system
+    ]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.android</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <moduleBuilder builderClass="com.github.pvoid.androidbp.module.AndroidBpModuleBuilder"
+                       id="ANDROID_BP_MODULE"/>
+        <moduleType id="ANDROID_BP_MODULE_TYPE" implementationClass="com.github.pvoid.androidbp.module.AndroidBpModuleType"/>
+        <sdkType implementation="com.github.pvoid.androidbp.module.sdk.AospSdkType" />
+        <fileType name="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFileType"
+                  fieldName="INSTANCE" language="Blueprint" extensions="bp"/>
+        <fileTypeFactory implementation="com.github.pvoid.androidbp.blueprint.BlueprintFileTypeFactory" />
+        <lang.parserDefinition language="Blueprint"
+                               implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="Blueprint"
+                                       implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintSyntaxHighlighterFactory"/>
+        <postStartupActivity implementation="com.github.pvoid.androidbp.BlueprintStartupActivity" />
+        <annotator language="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintAnnotator"/>
+        <completion.contributor language="any" implementationClass="com.github.pvoid.androidbp.blueprint.completion.BlueprintCompletionContributor" />
+        <lang.commenter language="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintCommenter"/>
+        <lang.foldingBuilder language="Blueprint"
+                             implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFoldingBuilder"/>
+        <projectStructureDetector implementation="com.github.pvoid.androidbp.module.AndroidBpProjectStructureDetector" />
+    </extensions>
+
+    <extensions defaultExtensionNs="com.android.project">
+        <projectsystem implementation="com.github.pvoid.androidbp.module.android.AospProjectSystemProvider"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+    <projectListeners>
+        <listener class="com.github.pvoid.androidbp.BlueprintFsListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener" />
+    </projectListeners>
+</idea-plugin>

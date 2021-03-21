@@ -1,0 +1,56 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+plugins {
+    id 'org.jetbrains.intellij' version '0.7.2'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.31'
+}
+
+apply plugin: "kotlin"
+apply plugin: "org.jetbrains.intellij"
+
+group 'com.github.pvoid.androidbp'
+version '0.9.0-ALPHA'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation files("libs/java-cup-11b-runtime.jar")
+    testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    version '2021.1'
+    type 'IC'
+    plugins = ['java', 'android']
+}
+patchPluginXml {
+    changeNotes """
+      <ul>
+        <li>Codecompletion for Android.bp files</li>
+        <li>Commenter support in Android.bp files</li>
+        <li>Code folding in Android.bp files</li>
+      </ul>"""
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+sourceSets.main.java.srcDirs 'src/main/gen'
