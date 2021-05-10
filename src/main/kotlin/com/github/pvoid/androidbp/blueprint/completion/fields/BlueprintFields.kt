@@ -10,6 +10,8 @@ val BLUEPRINT_FIEDLS = mapOf(
     "android_app" to ANDROID_APP_FIELDS,
     "android_library" to ANDROID_LIBRARY_FIELDS,
     "android_library_import" to ANDROID_LIBRARY_IMPORT_FIELDS,
+    "android_test" to ANDROID_TEST_FIELDS,
+    "java_defaults" to JAVA_DEFAULTS_FIELS,
     "java_sdk_library" to JAVA_SDK_LIBRARY_FIELDS,
     "aidl_interface" to AIDL_INTERFACE_FIELDS,
     "prebuilt_etc" to PREBUILD_ETC_FIELDS,

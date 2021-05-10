@@ -12,6 +12,7 @@
     <description><![CDATA[
     Adds support for android blueprints and allows to develop android apps as a part of ths system
     ]]></description>
+    <version>0.9.1-ALPHA</version>
 
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
@@ -43,10 +44,6 @@
     <extensions defaultExtensionNs="com.android.project">
         <projectsystem implementation="com.github.pvoid.androidbp.module.android.AospProjectSystemProvider"/>
     </extensions>
-
-    <actions>
-        <!-- Add your actions here -->
-    </actions>
 
     <projectListeners>
         <listener class="com.github.pvoid.androidbp.BlueprintFsListener"

@@ -10,7 +10,7 @@ val JAVA_SDK_LIBRARY_FIELDS = listOf(
     BlueprintStringField("name", "The name of the module. Must be unique across all modules."),
     BlueprintStringListField("srcs", "list of source files used to compile the Java module. May be .java, .kt, .logtags, .proto, or .aidl files."),
     BlueprintStringListField("exclude_srcs", "list of source files that should not be used to build the Java module. This is most useful in the arch/multilib variants to remove non-common files"),
-    BlueprintStringListField("defaults",""),
+    BlueprintLibrariesField("defaults",""),
     BlueprintBooleanField("host_supported", "If set to true, build a variant of the module for the host. Defaults to false."),
     BlueprintBooleanField("device_supported", "If set to true, build a variant of the module for the device. Defaults to true."),
     BlueprintObjectField("aidl", "", listOf(
