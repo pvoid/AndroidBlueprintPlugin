@@ -26,7 +26,7 @@ private enum class BlueprintTypeGroup(val priority: Int) {
 private data class BlueprintTypeCompletion(val name: String, val group: BlueprintTypeGroup, val weight: Double = 0.0, val desc: String = "")
 
 private val BLUEPRINT_TYPES = arrayOf(
-    BlueprintTypeCompletion("java_defaults", BlueprintTypeGroup.Java),
+    BlueprintTypeCompletion("java_defaults", BlueprintTypeGroup.Java, desc = "java_defaults provides a set of properties that can be inherited by other java or android modules. A module can use the properties from a java_defaults module using `defaults: [\"defaults_module_name\"]`. Each property in the defaults module that exists in the depending module will be prepended to the depending module's value for that property."),
     BlueprintTypeCompletion("filegroup", BlueprintTypeGroup.Other),
     BlueprintTypeCompletion("java_library", BlueprintTypeGroup.Java, 1.0),
     BlueprintTypeCompletion("java_library_host", BlueprintTypeGroup.JavaHost),
@@ -56,7 +56,7 @@ private val BLUEPRINT_TYPES = arrayOf(
     BlueprintTypeCompletion("stubs_defaults", BlueprintTypeGroup.Other),
     BlueprintTypeCompletion("android_app", BlueprintTypeGroup.Android, 1.0, "Compiles sources and Android resources into an Android application package `.apk` file."),
     BlueprintTypeCompletion("android_library", BlueprintTypeGroup.Android, 1.0, "Builds and links sources into a `.jar` file for the device along with Android resources. An android_library has a single variant that produces a `.jar` file containing `.class` files that were compiled against the device bootclasspath, along with a `package-res.apk` file containing Android resources compiled with aapt2. This module is not suitable for installing on a device, but can be used as a `static_libs` dependency of an android_app module."),
-    BlueprintTypeCompletion("android_test", BlueprintTypeGroup.AndroidTest, 0.8),
+    BlueprintTypeCompletion("android_test", BlueprintTypeGroup.AndroidTest, 0.8, "Compiles test sources and Android resources into an Android application package `.apk` file and creates an `AndroidTest.xml` file to allow running the test with `atest` or a `TEST_MAPPING` file."),
     BlueprintTypeCompletion("android_test_helper_app", BlueprintTypeGroup.AndroidTest, 0.5),
     BlueprintTypeCompletion("android_library_import", BlueprintTypeGroup.Android, 0.7, "android_library_import imports an `.aar` file into the build graph as if it was built with android_library. This module is not suitable for installing on a device, but can be used as a `static_libs` dependency of an android_app module."),
     BlueprintTypeCompletion("android_app_certificate", BlueprintTypeGroup.Android, 0.2, "android_app_certificate modules can be referenced by the certificates property of android_app modules to select the signing key."),

@@ -37,6 +37,16 @@ data class BlueprintLibrariesField(
     override val descr: String
 ) : BlueprintField
 
+data class BlueprintReferencesListField(
+    override val name: String,
+    override val descr: String
+) : BlueprintField
+
+data class BlueprintReferenceField(
+    override val name: String,
+    override val descr: String
+) : BlueprintField
+
 data class BlueprintInterfaceField(
     override val name: String,
     override val descr: String

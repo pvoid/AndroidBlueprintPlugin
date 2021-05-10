@@ -13,7 +13,7 @@ val ANDROID_APP_FIELDS = listOf(
     BlueprintStringListField("defaults", ""),
     BlueprintBooleanField("aapt_include_all_resources", "Include all resource configurations, not just the product-configured ones."),
     BlueprintStringListField("aaptflags", "Flags passed to aapt when creating the apk"),
-    BlueprintStringListField("additional_certificates", "Names of extra android_app_certificate modules to sign the apk with in the form \":module\"."),
+    BlueprintReferencesListField("additional_certificates", "Names of extra android_app_certificate modules to sign the apk with in the form \":module\"."),
     BlueprintStringListField("additional_manifests", "Paths to additional manifest files to merge with main manifest."),
     BlueprintObjectField("aidl","", listOf(
         BlueprintStringListField("include_dirs", "Top level directories to pass to aidl tool"),
