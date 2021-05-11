@@ -1,4 +1,4 @@
-IntelliJ IDEA has great support for android apps development but it is based on gradle. If you are developing 
+IntelliJ IDEA has great support for android apps development, but it is based on gradle. If you are developing 
 your forked version of android it doesn't really help and even if you try to mock a gradle based project it 
 will still use public versions of android.jar. It means that the system and hidden API won't be visible. It 
 causes autocompletion and code inspection problems. 

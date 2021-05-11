@@ -26,7 +26,7 @@ val JAVA_IMPORT_FIELDS = listOf(
     BlueprintBooleanField("installable", ""),
     BlueprintStringListField("jars", ""),
     BlueprintBooleanField("jetifier", "if set to true, run Jetifier against .jar file. Defaults to false."),
-    BlueprintLibrariesField("libs", "List of shared java libs that this module has dependencies to"),
+    BlueprintLibrariesListField("libs", "List of shared java libs that this module has dependencies to"),
     BlueprintStringField("notice", "relative path to a file to include in the list of notices for the device"),
     BlueprintStringField("owner", "vendor who owns this module"),
     BlueprintBooleanField("prefer", "When prefer is set to true the prebuilt will be used instead of any source module with a matching name."),
@@ -34,7 +34,7 @@ val JAVA_IMPORT_FIELDS = listOf(
     BlueprintBooleanField("product_specific", "whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."),
     BlueprintBooleanField("proprietary", "whether this is a proprietary vendor module, and should be installed into /vendor"),
     BlueprintBooleanField("recovery", "Whether this module is installed to recovery partition"),
-    BlueprintLibrariesField("required", "names of other modules to install if this module is installed"),
+    BlueprintLibrariesListField("required", "names of other modules to install if this module is installed"),
     BlueprintStringField("sdk_version", ""),
     BlueprintBooleanField("soc_specific", "whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."),
     BlueprintObjectField("target", "", listOf(
