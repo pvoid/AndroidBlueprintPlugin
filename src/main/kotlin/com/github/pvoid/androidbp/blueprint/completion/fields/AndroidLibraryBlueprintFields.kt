@@ -59,7 +59,7 @@ val ANDROID_LIBRARY_FIELDS = listOf(
     BlueprintNumberField("javac_shard_size", "The number of Java source entries each Javac instance can process"),
     BlueprintStringListField("javacflags", "list of module-specific flags that will be used for javac compiles"),
     BlueprintStringListField("kotlincflags", "list of module-specific flags that will be used for kotlinc compiles"),
-    BlueprintLibrariesField("libs", "list of of java libraries that will be in the classpath"),
+    BlueprintLibrariesListField("libs", "list of of java libraries that will be in the classpath"),
     BlueprintStringField("manifest", "path to AndroidManifest.xml. If unset, defaults to \"AndroidManifest.xml\"."),
     BlueprintStringField("min_sdk_version", "if not blank, set the minimum version of the sdk that the compiled artifacts will run against. Defaults to sdk_version if not set."),
     BlueprintBooleanField("no_framework_libs", "don't build against the framework libraries (ext, and framework for device targets)"),
@@ -102,7 +102,7 @@ val ANDROID_LIBRARY_FIELDS = listOf(
     BlueprintStringField("sdk_version", "if not blank, set to the version of the sdk to compile against. Defaults to compiling against the current sdk if platform_apis is not set."),
     BlueprintStringListField("services", "List of files to include in the META-INF/services folder of the resulting jar."),
     BlueprintBooleanField("soc_specific", "whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."),
-    BlueprintLibrariesField("static_libs", "list of java libraries that will be compiled into the resulting jar"),
+    BlueprintLibrariesListField("static_libs", "list of java libraries that will be compiled into the resulting jar"),
     BlueprintStringField("system_modules", "When targeting 1.9, override the modules to use with --system"),
     BlueprintObjectField("target", "", listOf(
         BlueprintObjectField("host", "", listOf(

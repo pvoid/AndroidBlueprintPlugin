@@ -25,7 +25,7 @@ val ANDROID_APP_CERTIFICATE_FIELDS = listOf(
     BlueprintBooleanField("product_specific", "whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."),
     BlueprintBooleanField("proprietary", "whether this is a proprietary vendor module, and should be installed into /vendor"),
     BlueprintBooleanField("recovery", "Whether this module is installed to recovery partition"),
-    BlueprintLibrariesField("required", "names of other modules to install if this module is installed"),
+    BlueprintLibrariesListField("required", "names of other modules to install if this module is installed"),
     BlueprintBooleanField("soc_specific", "whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."),
     BlueprintObjectField("target", "", listOf(
         BlueprintObjectField("host", "", listOf(

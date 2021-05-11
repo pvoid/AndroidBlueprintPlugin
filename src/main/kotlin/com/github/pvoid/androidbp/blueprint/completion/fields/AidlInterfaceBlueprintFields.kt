@@ -86,7 +86,7 @@ val AIDL_INTERFACE_FIELDS = listOf(
     BlueprintBooleanField("proprietary", "whether this is a proprietary vendor module, and should be installed into /vendor"),
     BlueprintBooleanField("ramdisk", "Whether this module is installed to ramdisk"),
     BlueprintBooleanField("recovery", "Whether this module is installed to recovery partition"),
-    BlueprintLibrariesField("required", "names of other modules to install if this module is installed"),
+    BlueprintLibrariesListField("required", "names of other modules to install if this module is installed"),
     BlueprintBooleanField("soc_specific", "whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."),
     BlueprintStringField("stability", "Stability promise. Currently only supports \"vintf\". If this is unset, this corresponds to an interface with stability within this compilation context (so an interface loaded here can only be used with things compiled together, e.g. on the system.img). If this is set to \"vintf\", this corresponds to a stability promise: the interface must be kept stable as long as it is used."),
     BlueprintBooleanField("system_ext_specific", "whether this module extends system. When set to true, it is installed into /system_ext (or /system/system_ext if system_ext partition does not exist)."),

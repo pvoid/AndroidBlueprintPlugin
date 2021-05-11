@@ -21,7 +21,7 @@ val ANDROID_LIBRARY_IMPORT_FIELDS = listOf(
     BlueprintBooleanField("enabled", "emit build rules for this module"),
     BlueprintStringListField("init_rc", "init.rc files to be installed if this module is installed"),
     BlueprintBooleanField("jetifier", "if set to true, run Jetifier against .aar file. Defaults to false."),
-    BlueprintLibrariesField("libs", ""),
+    BlueprintLibrariesListField("libs", ""),
     BlueprintStringField("min_sdk_version", ""),
     BlueprintStringField("notice", "relative path to a file to include in the list of notices for the device"),
     BlueprintStringField("owner", "vendor who owns this module"),
@@ -30,10 +30,10 @@ val ANDROID_LIBRARY_IMPORT_FIELDS = listOf(
     BlueprintBooleanField("product_specific", "whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."),
     BlueprintBooleanField("proprietary", "whether this is a proprietary vendor module, and should be installed into /vendor"),
     BlueprintBooleanField("recovery", "Whether this module is installed to recovery partition"),
-    BlueprintLibrariesField("required", "names of other modules to install if this module is installed"),
+    BlueprintLibrariesListField("required", "names of other modules to install if this module is installed"),
     BlueprintStringField("sdk_version", ""),
     BlueprintBooleanField("soc_specific", "whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."),
-    BlueprintLibrariesField("static_libs", ""),
+    BlueprintLibrariesListField("static_libs", ""),
     BlueprintObjectField("target", "", listOf(
         BlueprintObjectField("host", "", listOf(
             BlueprintStringField("compile_multilib", "")

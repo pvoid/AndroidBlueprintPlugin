@@ -7,7 +7,8 @@
 package com.github.pvoid.androidbp.blueprint.completion
 
 import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintBooleanField
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintLibrariesField
+import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintLibrariesListField
+import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintLibraryField
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintPair
 import com.github.pvoid.androidbp.module.sdk.aospSdkData
 import com.intellij.codeInsight.completion.*
@@ -31,7 +32,7 @@ class BlueprintVariableValueCompletionProvider : CompletionProvider<CompletionPa
             return
         }
 
-        if (field is BlueprintLibrariesField) {
+        if (field is BlueprintLibrariesListField || field is BlueprintLibraryField) {
             addLibrariesCompletion(parameters, result)
             return
         }

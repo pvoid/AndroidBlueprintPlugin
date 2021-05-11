@@ -84,7 +84,7 @@ class AospAndroidModuleSystem(
         return null
     }
 
-    override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+    override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
         val result = mutableListOf<Library>()
         val manager = ProjectRootManager.getInstance(project)
         val sdk = manager.projectSdk ?: return emptyList()
@@ -151,7 +151,7 @@ class AospAndroidModuleSystem(
 
     override fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
 
-    override fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedDependentLibraries(includeExportedTransitiveDeps = true)
+    override fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
 
     override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
 
