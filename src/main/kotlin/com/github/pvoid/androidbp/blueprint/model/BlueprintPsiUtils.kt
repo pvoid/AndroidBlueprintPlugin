@@ -6,9 +6,9 @@
 
 package com.github.pvoid.androidbp.blueprint.model
 
-import com.github.pvoid.androidbp.blueprint.completion.fields.BLUEPRINT_FIEDLS
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintField
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintObjectField
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintAutocompletion
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintField
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintObjectField
 import com.github.pvoid.androidbp.blueprint.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.backend.common.pop
@@ -60,8 +60,7 @@ object BlueprintPsiUtils {
             node = node.parent
         }
 
-        var fields: List<BlueprintField> = BLUEPRINT_FIEDLS[path.pop()] ?: return null
-        val ident = path.size
+        var fields: List<BlueprintField> = BlueprintAutocompletion.fields(path.pop())
         while (path.isNotEmpty()) {
             val fieldName = path.pop()
             val field = fields.firstOrNull { it.name == fieldName } ?: return null

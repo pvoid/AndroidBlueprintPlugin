@@ -6,7 +6,7 @@
 
 package com.github.pvoid.androidbp.blueprint;
 
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintField;
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintField;
 import com.github.pvoid.androidbp.blueprint.model.BlueprintPsiUtils;
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintBlueprint;
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintFieldName;

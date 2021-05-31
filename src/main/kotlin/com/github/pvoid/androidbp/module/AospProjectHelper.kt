@@ -54,6 +54,8 @@ interface AospProjectHelper {
 
     fun updateFacet(sdk: Sdk, blueprint: Blueprint, facet: AndroidFacet)
 
+    fun shouldHaveFacet(blueprint: Blueprint): Boolean
+
     companion object : AospProjectHelper by AospProjectHelperImpl()
 }
 
@@ -155,7 +157,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
             ModuleUtil.findModuleForFile(blueprintFile, project)
         } ?: return
         val blueprints = BlueprintsTable.get(blueprintFile)
-        val androidApps = blueprints.filter { it is AndroidAppBlueprint || it is AndroidLibraryBlueprint }
+        val androidApps = blueprints.filter(::shouldHaveFacet)
 
         if (androidApps.isEmpty()) {
             return
@@ -230,6 +232,9 @@ private class AospProjectHelperImpl : AospProjectHelper {
             model.commit()
         }
     }
+
+    override fun shouldHaveFacet(blueprint: Blueprint): Boolean =
+        blueprint is AndroidAppBlueprint || blueprint is AndroidLibraryBlueprint || blueprint is JavaSdkLibraryBlueprint
 
     private fun addSourceRootFolder(model:  ModifiableRootModel, resources: List<VirtualFile>) {
         val sourceType = JavaResourceRootType.RESOURCE

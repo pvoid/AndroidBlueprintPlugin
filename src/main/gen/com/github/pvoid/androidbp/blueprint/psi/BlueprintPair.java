@@ -9,7 +9,7 @@ package com.github.pvoid.androidbp.blueprint.psi;
 
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintField;
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintField;
 
 public interface BlueprintPair extends PsiElement {
 

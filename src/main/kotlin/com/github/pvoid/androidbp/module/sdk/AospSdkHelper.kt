@@ -7,6 +7,7 @@
 package com.github.pvoid.androidbp.module.sdk
 
 import com.android.tools.idea.sdk.AndroidSdks
+import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.addClassesToLibrary
 import com.github.pvoid.androidbp.addSourcesToLibrary
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
@@ -22,7 +23,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import org.jetbrains.rpc.LOG
 import java.io.File
 import java.io.FileReader
 import java.util.*

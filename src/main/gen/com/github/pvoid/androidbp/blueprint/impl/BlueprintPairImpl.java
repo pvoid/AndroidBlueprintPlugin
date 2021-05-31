@@ -13,7 +13,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.github.pvoid.androidbp.blueprint.psi.*;
 import com.github.pvoid.androidbp.blueprint.BlueprintPsiUtilsMirror;
-import com.github.pvoid.androidbp.blueprint.completion.fields.BlueprintField;
+import com.github.pvoid.androidbp.blueprint.completion.BlueprintField;
 
 public class BlueprintPairImpl extends ASTWrapperPsiElement implements BlueprintPair {
 

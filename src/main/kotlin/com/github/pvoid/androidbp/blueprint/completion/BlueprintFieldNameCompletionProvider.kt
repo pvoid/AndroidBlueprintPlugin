@@ -6,7 +6,6 @@
 
 package com.github.pvoid.androidbp.blueprint.completion
 
-import com.github.pvoid.androidbp.blueprint.completion.fields.*
 import com.github.pvoid.androidbp.blueprint.psi.*
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
@@ -55,9 +54,9 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
         result: CompletionResultSet
     ) {
         val name = blueprint.blueprintName ?: return
-        BLUEPRINT_FIEDLS[name]?.filter {
+        BlueprintAutocompletion.fields(name).filter {
             it.name !in used
-        }?.forEach {
+        }.forEach {
             result.addElement(
                 LookupElementBuilder.create(it.name).withInsertHandler(BlueprintFieldInsertHandler(it, 1))
             )
@@ -84,7 +83,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
             return
         }
 
-        var fields: List<BlueprintField> = BLUEPRINT_FIEDLS[path.pop()] ?: return
+        var fields: List<BlueprintField> = BlueprintAutocompletion.fields(path.pop())
         val ident = path.size
         while (path.isNotEmpty()) {
             val fieldName = path.pop()
@@ -119,12 +118,12 @@ private class BlueprintFieldInsertHandler(
         var caretStartOffset = 0
         var caretEndOffset = 0
         when (mType) {
-            is BlueprintStringField, is BlueprintInterfaceField, is BlueprintReferenceField, is BlueprintLibraryField -> {
+            is BlueprintStringField -> {
                 suffix.append("\"\"")
                 caretEndOffset = 1
                 caretStartOffset = caretEndOffset
             }
-            is BlueprintStringListField, is BlueprintLibrariesListField, is BlueprintReferencesListField -> {
+            is BlueprintStringListField, is BlueprintReferencesListField -> {
                 suffix.append("[  ]")
                 caretEndOffset = 2
                 caretStartOffset = caretEndOffset

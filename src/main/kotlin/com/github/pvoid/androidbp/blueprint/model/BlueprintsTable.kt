@@ -12,7 +12,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
-import org.jetbrains.rpc.LOG
 import java.io.File
 import java.io.FileReader
 

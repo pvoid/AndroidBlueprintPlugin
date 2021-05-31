@@ -8,9 +8,7 @@ package com.github.pvoid.androidbp.module.android
 
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.util.LOG
-import com.github.pvoid.androidbp.blueprint.model.AndroidAppBlueprint
-import com.github.pvoid.androidbp.blueprint.model.AndroidLibraryBlueprint
+import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.blueprint.model.Blueprint
 import com.github.pvoid.androidbp.blueprint.model.BlueprintsTable
 import com.github.pvoid.androidbp.module.AospProjectHelper
@@ -75,9 +73,7 @@ class AospProjectSystemSyncManager(
         mBlueprints = AospProjectHelper.blueprintFileForProject(mProject)?.let {
             mWatchedFiles.add(it.url)
             BlueprintsTable.get(it)
-        }?.filter {
-            it is AndroidAppBlueprint || it is AndroidLibraryBlueprint
-        } ?: emptyList()
+        }?.filter(AospProjectHelper::shouldHaveFacet) ?: emptyList()
 
         val facets = FacetManager.getInstance(mProject.allModules().first())
         val sdk = ProjectRootManager.getInstance(mProject).projectSdk

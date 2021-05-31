@@ -13,6 +13,8 @@ import com.intellij.patterns.PlatformPatterns
 
 class BlueprintCompletionContributor : CompletionContributor(), DumbAware {
     init {
+        BlueprintAutocompletion.load()
+
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(BlueprintTypes.VARIABLE_NAME), BlueprintTypeCompletionProvider())
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(BlueprintTypes.FIELD_NAME), BlueprintFieldNameCompletionProvider())
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(BlueprintTypes.VARIABLE_VALUE), BlueprintVariableValueCompletionProvider())

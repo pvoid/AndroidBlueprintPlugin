@@ -7,10 +7,10 @@
 package com.github.pvoid.androidbp.module.sdk
 
 import com.android.tools.idea.sdk.AndroidSdks
+import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.ManifestInfo
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.getSystemIndependentPath
-import com.github.pvoid.androidbp.toFileSystemUrl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProgressIndicator
@@ -20,17 +20,12 @@ import com.intellij.openapi.projectRoots.*
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType
 import com.intellij.openapi.projectRoots.impl.JavaSdkImpl
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.*
 import org.jdom.Element
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData
 import org.jetbrains.jps.model.java.impl.JavaSdkUtil
-import org.jetbrains.rpc.LOG
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileReader
 import java.io.IOException
 import java.nio.file.Path
 import java.util.*
@@ -122,13 +117,13 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
         JavaSdkUtil.getJdkClassesRoots(jdkHome, false).map {
             VfsUtil.getUrlForLibraryRoot(it.toFile())
         }.forEach {
-            modificator.addRoot(it, OrderRootType.CLASSES);
+            modificator.addRoot(it, OrderRootType.CLASSES)
         }
         // Add sources
         val jdkSrc = File(sdk.homePath, "prebuilts/jdk/jdk8/linux-x86/src.zip")
         if (jdkSrc.exists()) {
             (findInJar(jdkSrc, "src") ?: findInJar(jdkSrc, ""))?.let {
-                modificator.addRoot(it, OrderRootType.SOURCES);
+                modificator.addRoot(it, OrderRootType.SOURCES)
             }
         }
 
