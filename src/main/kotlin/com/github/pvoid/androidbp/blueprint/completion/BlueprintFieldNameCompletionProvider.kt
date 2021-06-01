@@ -84,7 +84,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
         }
 
         var fields: List<BlueprintField> = BlueprintAutocompletion.fields(path.pop())
-        val ident = path.size
+        val indent = path.size
         while (path.isNotEmpty()) {
             val fieldName = path.pop()
             val field = fields.firstOrNull { it.name == fieldName } ?: return
@@ -100,7 +100,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
             it.name !in used
         }.forEach {
             result.addElement(
-                LookupElementBuilder.create(it.name).withInsertHandler(BlueprintFieldInsertHandler(it, ident))
+                LookupElementBuilder.create(it.name).withInsertHandler(BlueprintFieldInsertHandler(it, indent + 1))
             )
         }
     }
@@ -108,7 +108,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
 
 private class BlueprintFieldInsertHandler(
     private val mType: BlueprintField,
-    private val mIdent: Int
+    private val mIndent: Int
 ) : InsertHandler<LookupElement> {
     override fun handleInsert(context: InsertionContext, item: LookupElement) {
         val editor = context.editor
@@ -130,9 +130,9 @@ private class BlueprintFieldInsertHandler(
             }
             is BlueprintObjectField -> {
                 suffix.append("{\n")
-                suffix.append("\n".padStart((mIdent + 1) * 4 + 1))
-                suffix.append("}".padStart(mIdent * 4 + 1))
-                caretEndOffset = mIdent * 4 + 2
+                suffix.append("\n".padStart((mIndent + 1) * 4 + 1))
+                suffix.append("}".padStart(mIndent * 4 + 1))
+                caretEndOffset = mIndent * 4 + 2
                 caretStartOffset = caretEndOffset
             }
             is BlueprintBooleanField -> {
