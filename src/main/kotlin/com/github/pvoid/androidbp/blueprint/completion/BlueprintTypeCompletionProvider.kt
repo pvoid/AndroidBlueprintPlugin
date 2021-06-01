@@ -31,6 +31,23 @@ private class BlueprintInsertHandler : InsertHandler<LookupElement> {
         val editor = context.editor
         val document = editor.document
 
+        // Looking for the next character
+        var index = context.tailOffset
+        if (index < document.textLength && (document.text[index].isLetter() || document.text[index] == '_')) {
+            // Skip to first whitespace
+            while (index < document.textLength && (document.text[index].isLetter() || document.text[index] == '_')) {
+                ++index
+            }
+        }
+
+        while (index < document.textLength && document.text[index].isWhitespace()) {
+            ++index
+        }
+
+        if (index < document.textLength && document.text[index] == '{') {
+            return
+        }
+
         document.insertString(context.tailOffset, " {\n    name: \"\",\n}")
         editor.caretModel.moveToOffset(context.tailOffset - 4)
     }
