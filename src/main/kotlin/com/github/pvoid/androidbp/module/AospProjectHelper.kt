@@ -234,7 +234,8 @@ private class AospProjectHelperImpl : AospProjectHelper {
     }
 
     override fun shouldHaveFacet(blueprint: Blueprint): Boolean =
-        blueprint is AndroidAppBlueprint || blueprint is AndroidLibraryBlueprint || blueprint is JavaSdkLibraryBlueprint
+        blueprint is AndroidAppBlueprint || blueprint is AndroidLibraryBlueprint
+                || blueprint is JavaSdkLibraryBlueprint || blueprint is AidlJavaInterfaceBlueprint
 
     private fun addSourceRootFolder(model:  ModifiableRootModel, resources: List<VirtualFile>) {
         val sourceType = JavaResourceRootType.RESOURCE

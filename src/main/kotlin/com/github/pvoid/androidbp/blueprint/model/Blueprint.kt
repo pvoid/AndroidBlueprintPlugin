@@ -36,6 +36,10 @@ interface BlueprintWithAssets : Blueprint {
     val assets: List<SourceSet>
 }
 
+interface BlueprintWithAidls : Blueprint {
+    val aidls: List<SourceSet>
+}
+
 interface BlueprintWithManifest : Blueprint {
     val manifest: String
 }
@@ -140,9 +144,9 @@ class SyspropLibraryBlueprint(
 
 class AidlJavaInterfaceBlueprint(
     override val name: String,
-    override val sources: List<SourceSet>,
+    override val aidls: List<SourceSet>,
     override val dependencies: List<String>,
-) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithArtifacts, BlueprintWithDynamicSources {
+) : Blueprint, BlueprintWithAidls, BlueprintWithDependencies, BlueprintWithArtifacts, BlueprintWithDynamicSources {
     override fun getArtifacts(basePath: File): List<File> {
         val outPath = "${basePath.absolutePath}-java/"
         return listOf(File(outPath, "android_common/turbine-combined/$name-java.jar"))

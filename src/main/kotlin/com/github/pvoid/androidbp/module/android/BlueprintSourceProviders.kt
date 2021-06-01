@@ -53,8 +53,8 @@ class BlueprintSourceProviders(
 
 class BlueprintSourceProvider(projectPath: String, sdk: Sdk, blueprint: Blueprint) : NamedIdeaSourceProvider {
     override val name: String = blueprint.name
-    override val aidlDirectories: Collection<VirtualFile> = emptyList() // TODO: Add an actual paths
-    override val aidlDirectoryUrls: Collection<String> = emptyList() // TODO: Add an actual paths
+    override val aidlDirectories: Collection<VirtualFile> = BlueprintHelper.collectBlueprintAidls(blueprint, sdk)
+    override val aidlDirectoryUrls: Collection<String> = aidlDirectories.map { it.url }
     override val assetsDirectories: Collection<VirtualFile> = BlueprintHelper.collectBlueprintAssets(blueprint, sdk)
     override val assetsDirectoryUrls: Collection<String> = assetsDirectories.map { it.url }
     override val javaDirectories: Collection<VirtualFile> =

@@ -23,6 +23,7 @@ private val LIBRARY_TYPES = listOf("java", "kt")
 interface BlueprintHelper {
     fun collectBlueprintResources(blueprint: Blueprint, sdk: Sdk): Set<VirtualFile>
     fun collectBlueprintAssets(blueprint: Blueprint, sdk: Sdk): Set<VirtualFile>
+    fun collectBlueprintAidls(blueprint: Blueprint, sdk: Sdk): Set<VirtualFile>
     fun getBlueprintManifest(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintR(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintResApk(blueprint: Blueprint, sdk: Sdk): VirtualFile?
@@ -58,6 +59,17 @@ class BlueprintHelperImpl : BlueprintHelper {
 
         return collectBlueprintSources(sdkData, blueprintFile, blueprint) {
             (this as? BlueprintWithAssets)?.assets ?: emptyList()
+        }.mapNotNull { file ->
+            VirtualFileManager.getInstance().findFileByUrl(file.toFileSystemUrl())
+        }.toSet()
+    }
+
+    override fun collectBlueprintAidls(blueprint: Blueprint, sdk: Sdk): Set<VirtualFile> {
+        val sdkData = sdk.aospSdkData ?: return emptySet()
+        val blueprintFile = sdkData.getBlueprintFile(blueprint.name)?.let { File(it.path) } ?: return emptySet()
+
+        return collectBlueprintSources(sdkData, blueprintFile, blueprint) {
+            (this as? BlueprintWithAidls)?.aidls ?: emptyList()
         }.mapNotNull { file ->
             VirtualFileManager.getInstance().findFileByUrl(file.toFileSystemUrl())
         }.toSet()
