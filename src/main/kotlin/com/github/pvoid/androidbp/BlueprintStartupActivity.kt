@@ -36,7 +36,7 @@ class BlueprintStartupActivity : StartupActivity {
             val projectSdk = manager.projectSdk
 
             if (projectSdk != null && projectSdk.sdkType.name == AOSP_SDK_TYPE_NAME) {
-                ProgressManager.getInstance().run( object : Task.Backgroundable(project, "Checking dependencies", false) {
+                ProgressManager.getInstance().run( object : Task.Backgroundable(project, "Checking dependencies", false, ALWAYS_BACKGROUND) {
                     override fun run(indicator: ProgressIndicator) {
                         if (projectSdk.aospSdkData?.isOld() == true) {
                             AospSdkHelper.updateAdditionalData(projectSdk, indicator)
@@ -62,7 +62,7 @@ class BlueprintStartupActivity : StartupActivity {
                     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
                         notification.hideBalloon()
 
-                        ProgressManager.getInstance().run(object : Task.Modal(project, "Configuring Project", false) {
+                        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Configuring project", false, ALWAYS_BACKGROUND) {
                             override fun run(indicator: ProgressIndicator) {
                                 indicator.text = "Assigning AOSP SDK"
                                 AospProjectHelper.checkAndAssignSdk(project, indicator)?.let { sdk ->
