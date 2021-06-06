@@ -14,9 +14,10 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.ProjectWizardStepFactory
 import com.intellij.ide.util.projectWizard.importSources.*
 import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.util.io.FileUtil
 import java.io.File
-import javax.swing.Icon
 import java.io.FileReader
+import javax.swing.Icon
 
 class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
 
@@ -36,11 +37,11 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
 
             if (!blueprints.isNullOrEmpty()) {
                 result.add(AndroidBpDetectedSourceRoot(dir, blueprints))
-                return DirectoryProcessingResult.SKIP_CHILDREN;
+                return DirectoryProcessingResult.SKIP_CHILDREN
             }
         }
 
-        return DirectoryProcessingResult.PROCESS_CHILDREN;
+        return DirectoryProcessingResult.PROCESS_CHILDREN
     }
 
     override fun setupProjectStructure(
@@ -48,14 +49,24 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
         projectDescriptor: ProjectDescriptor,
         builder: ProjectFromSourcesBuilder
     ) {
-        if (projectDescriptor.modules.isEmpty()) {
-            val modules = mutableListOf<ModuleDescriptor>()
+        val existingRoots = EP_NAME.extensions.filter { it !== this }
+            .flatMap { builder.getProjectRoots(it) }
+            .map { it.directory }
+            .toList()
 
-            for (root in roots) {
-                if (root !is AndroidBpDetectedSourceRoot) {
-                    continue
-                }
+        val modules = mutableListOf<ModuleDescriptor>()
 
+        for (root in roots) {
+            if (root !is AndroidBpDetectedSourceRoot) {
+                continue
+            }
+
+            val dir = root.directory
+            val hasJavaRoot = existingRoots.firstOrNull {
+                FileUtil.isAncestor(dir, it, false)
+            } != null
+
+            if (!hasJavaRoot) {
                 val content = mutableListOf<DetectedSourceRoot>()
 
                 root.blueprints.flatMap { blueprint ->
@@ -72,11 +83,14 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
                     }
 
                 val module = ModuleDescriptor(root.directory, JavaModuleType.getModuleType(), content)
+                module.name = root.blueprints.filter {
+                    AospProjectHelper.shouldHaveFacet(it)
+                }.firstOrNull()?.name ?: module.name
                 modules.add(module)
             }
-
-            projectDescriptor.modules = modules
         }
+
+        projectDescriptor.modules = modules
     }
 
     override fun createWizardSteps(

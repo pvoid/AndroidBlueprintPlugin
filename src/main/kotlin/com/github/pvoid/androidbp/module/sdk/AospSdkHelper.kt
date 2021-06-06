@@ -15,11 +15,14 @@ import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.toFileSystemUrl
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkModificator
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTable
+import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -30,16 +33,37 @@ import java.util.*
 private val PLATFORM_VERSION_REGEX = Regex("\\s*PLATFORM_SDK_VERSION\\s*:=\\s*(\\d+)")
 
 interface AospSdkHelper {
+    fun tryToCreateSdk(path: String): Sdk?
     fun createLibrary(libraryTable: LibraryTable, library: String, sdk: Sdk): List<Library>
     fun getLibraryBlueprint(name: String, sdk: Sdk): VirtualFile?
     fun getCachePath(blueprint: Blueprint, sdk: Sdk): File?
     fun updateAdditionalData(sdk: Sdk, indicator: ProgressIndicator)
     fun setUpAdditionalData(sdk: Sdk, modificator: SdkModificator, indicator: ProgressIndicator)
+    fun isAospSourcePath(pathName: File): Boolean
 
     companion object : AospSdkHelper by AospSdkHelperImpl()
 }
 
 class AospSdkHelperImpl: AospSdkHelper {
+
+    override fun tryToCreateSdk(pathName: String): Sdk? {
+        var path = File(pathName)
+        while (!isAospSourcePath(path)) {
+            val parent = path.parentFile
+            if (parent == null || parent == path) {
+                return null
+            }
+            path = parent
+        }
+
+        if (AospSdkType.INSTANCE.isValidSdkHome(path.absolutePath)) {
+            return VirtualFileManager.getInstance().findFileByUrl(path.toFileSystemUrl())?.let {
+                SdkConfigurationUtil.setupSdk(emptyArray(), it, AospSdkType.INSTANCE, true,null, null)
+            }
+        }
+
+        return null
+    }
 
     override fun createLibrary(libraryTable: LibraryTable, library: String, sdk: Sdk): List<Library> {
         val sdkPath = sdk.homePath ?: return emptyList()
@@ -154,6 +178,11 @@ class AospSdkHelperImpl: AospSdkHelper {
         }.toMap().let {
             AospSdkData(sdk, androidSdk, it, platformVersion ?: 0)
         }
+    }
+
+    override fun isAospSourcePath(path: File): Boolean {
+        val repo = File(path, ".repo")
+        return repo.exists() && repo.isDirectory
     }
 
     private fun configureKotlinDependency(library: Library, sdk: Sdk) {

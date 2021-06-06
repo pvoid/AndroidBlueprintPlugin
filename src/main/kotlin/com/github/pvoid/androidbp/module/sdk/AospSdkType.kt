@@ -29,11 +29,19 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Path
 import java.util.*
+import javax.swing.SwingUtilities
 
 const val AOSP_SDK_TYPE_NAME = "AOSP"
 
 @Suppress("NAME_SHADOWING")
 class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
+
+    private val mShowAndroidSdkErrorRunnable = Runnable {
+        Messages.showErrorDialog(
+            "Android SDK is required to support resource editing and resolving. Please create any Android SDK first and try again",
+            "Can't Create AOSP SDK"
+        )
+    }
 
     private val isLinux: Boolean by lazy {
         System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("linux")
@@ -76,7 +84,15 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
         }
 
         if (AndroidSdks.getInstance().allAndroidSdks.isEmpty()) {
-            Messages.showErrorDialog("Android SDK is required to support resource editing and resolving. Please create any Android SDK first and try again", "Can't Create AOSP SDK")
+            ApplicationManager.getApplication().also { app ->
+                when {
+                    app.isDispatchThread -> mShowAndroidSdkErrorRunnable.run()
+                    app.isWriteAccessAllowed -> app.runWriteAction(mShowAndroidSdkErrorRunnable)
+                    else -> SwingUtilities.invokeAndWait {
+                        app.runWriteAction(mShowAndroidSdkErrorRunnable)
+                    }
+                }
+            }
             return false
         }
 
@@ -94,7 +110,7 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
         val sdkModificator = sdk.sdkModificator
         setUpJdk(sdk, sdkModificator)
 
-        val scanTask = object: Task.Modal(null, "Indexing Blueprints", false) {
+        val scanTask = object : Task.Modal(null, "Indexing Blueprints", false) {
             override fun run(indicator: ProgressIndicator) {
                 AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
                 WriteAction.runAndWait<Throwable> {
@@ -106,7 +122,10 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
         ProgressManager.getInstance().run(scanTask)
     }
 
-    override fun createAdditionalDataConfigurable(sdkModel: SdkModel, sdkModificator: SdkModificator): AdditionalDataConfigurable? {
+    override fun createAdditionalDataConfigurable(
+        sdkModel: SdkModel,
+        sdkModificator: SdkModificator
+    ): AdditionalDataConfigurable? {
         return null // AndroidSdkConfigurable(sdkModel, sdkModificator)
     }
 
@@ -163,7 +182,8 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
         if (!jarFile.exists()) {
             return null
         }
-        val url = JarFileSystem.PROTOCOL_PREFIX + jarFile.getSystemIndependentPath() + JarFileSystem.JAR_SEPARATOR + relativePath
+        val url =
+            JarFileSystem.PROTOCOL_PREFIX + jarFile.getSystemIndependentPath() + JarFileSystem.JAR_SEPARATOR + relativePath
         return VirtualFileManager.getInstance().findFileByUrl(url)
     }
 

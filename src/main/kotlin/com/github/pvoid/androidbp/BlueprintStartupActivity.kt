@@ -65,7 +65,7 @@ class BlueprintStartupActivity : StartupActivity {
                         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Configuring project", false, ALWAYS_BACKGROUND) {
                             override fun run(indicator: ProgressIndicator) {
                                 indicator.text = "Assigning AOSP SDK"
-                                AospProjectHelper.checkAndAssignSdk(project, indicator)?.let { sdk ->
+                                AospProjectHelper.checkAndAssignSdk(project, indicator, true)?.let { sdk ->
                                     indicator.text = "Creating libraries"
                                     val libs = AospProjectHelper.createDependencies(project, sdk)
                                     indicator.text = "Assigning dependencies"

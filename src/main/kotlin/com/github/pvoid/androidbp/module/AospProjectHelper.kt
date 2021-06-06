@@ -42,7 +42,7 @@ interface AospProjectHelper {
 
     fun blueprintFileForProject(project: Project): VirtualFile?
 
-    fun checkAndAssignSdk(project: Project, indicator: ProgressIndicator): Sdk?
+    fun checkAndAssignSdk(project: Project, indicator: ProgressIndicator, canCreateSdk: Boolean = false): Sdk?
 
     fun createDependencies(project: Project, sdk: Sdk): List<Library>
 
@@ -74,7 +74,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
         return LocalFileSystem.getInstance().findFileByPath(file.absolutePath)
     }
 
-    override fun checkAndAssignSdk(project: Project, indicator: ProgressIndicator): Sdk? {
+    override fun checkAndAssignSdk(project: Project, indicator: ProgressIndicator, canCreateSdk: Boolean): Sdk? {
         val manager = ProjectRootManager.getInstance(project)
         val sdk = manager.projectSdk
         // Check if SDK is AOSP source
@@ -95,6 +95,10 @@ private class AospProjectHelperImpl : AospProjectHelper {
                 AospSdkHelper.updateAdditionalData(sdk, indicator)
             }
             return sdk
+        }
+
+        if (canCreateSdk) {
+            return project.basePath?.let { AospSdkHelper.tryToCreateSdk(it) }
         }
 
         return null
