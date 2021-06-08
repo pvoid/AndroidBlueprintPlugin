@@ -80,25 +80,27 @@ private class AospProjectHelperImpl : AospProjectHelper {
         // Check if SDK is AOSP source
         if (sdk?.sdkType?.name != AOSP_SDK_TYPE_NAME) {
             // Looking for the first AOSP sdk
-            ProjectJdkTable.getInstance().allJdks.firstOrNull { it.sdkType is AospSdkType }?.let { foundSdk ->
+            var newSdk = ProjectJdkTable.getInstance().allJdks.firstOrNull { it.sdkType is AospSdkType }
+
+            if (newSdk == null && canCreateSdk) {
+                newSdk = project.basePath?.let { AospSdkHelper.tryToCreateSdk(it) }
+            }
+
+            newSdk?.let {
                 if (ApplicationManager.getApplication().isWriteAccessAllowed) {
-                    manager.projectSdk = foundSdk
+                    manager.projectSdk = it
                 } else {
                     WriteAction.runAndWait<Throwable> {
-                        manager.projectSdk = foundSdk
+                        manager.projectSdk = it
                     }
                 }
-                return foundSdk
+                return it
             }
         } else if (sdk.sdkType.name == AOSP_SDK_TYPE_NAME) {
             if (sdk.aospSdkData?.isOld() == true) {
                 AospSdkHelper.updateAdditionalData(sdk, indicator)
             }
             return sdk
-        }
-
-        if (canCreateSdk) {
-            return project.basePath?.let { AospSdkHelper.tryToCreateSdk(it) }
         }
 
         return null

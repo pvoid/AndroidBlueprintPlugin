@@ -59,6 +59,10 @@ class AospSdkHelperImpl: AospSdkHelper {
         if (AospSdkType.INSTANCE.isValidSdkHome(path.absolutePath)) {
             return VirtualFileManager.getInstance().findFileByUrl(path.toFileSystemUrl())?.let {
                 SdkConfigurationUtil.setupSdk(emptyArray(), it, AospSdkType.INSTANCE, true,null, null)
+            }?.also { sdk ->
+                WriteAction.runAndWait<Throwable> {
+                    ProjectJdkTable.getInstance().addJdk(sdk)
+                }
             }
         }
 
@@ -211,7 +215,7 @@ class AospSdkHelperImpl: AospSdkHelper {
 
     private fun configureLibrary(library: Library.ModifiableModel, sdkPath: String, sdk: Sdk, blueprintFile: File, blueprint: Blueprint) {
         val filesManager = VirtualFileManager.getInstance()
-        BlueprintHelper.collectBlueprintSources(blueprint, sdk).map(File::toFileSystemUrl).forEach { url ->
+        BlueprintHelper.collectBlueprintSources(blueprint, sdk, true).map(File::toFileSystemUrl).forEach { url ->
             filesManager.findFileByUrl(url)?.let {
                 library.addRoot(it, OrderRootType.SOURCES)
             }

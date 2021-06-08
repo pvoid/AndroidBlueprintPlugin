@@ -27,7 +27,7 @@ interface BlueprintHelper {
     fun getBlueprintManifest(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintR(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintResApk(blueprint: Blueprint, sdk: Sdk): VirtualFile?
-    fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk): Set<File>
+    fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeDynamic: Boolean): Set<File>
 
     companion object : BlueprintHelper by BlueprintHelperImpl()
 }
@@ -113,7 +113,7 @@ class BlueprintHelperImpl : BlueprintHelper {
         }
     }
 
-    override fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk): Set<File> {
+    override fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeDynamic: Boolean): Set<File> {
         val sdkData = sdk.aospSdkData ?: return emptySet()
         val blueprintFile = sdkData.getBlueprintFile(blueprint.name)?.let { File(it.path) } ?: return emptySet()
 
@@ -122,9 +122,11 @@ class BlueprintHelperImpl : BlueprintHelper {
             (this as? BlueprintWithSources)?.sources ?: emptyList()
         }.forEach(sources::add)
 
-        val cachePath = AospSdkHelper.getCachePath(blueprint, sdk)
-        if (cachePath != null && blueprint is BlueprintWithDynamicSources) {
-            sources.add(blueprint.getSources(cachePath))
+        if (includeDynamic) {
+            val cachePath = AospSdkHelper.getCachePath(blueprint, sdk)
+            if (cachePath != null && blueprint is BlueprintWithDynamicSources) {
+                sources.add(blueprint.getSources(cachePath))
+            }
         }
 
         return sources

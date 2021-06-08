@@ -58,7 +58,7 @@ class BlueprintSourceProvider(projectPath: String, sdk: Sdk, blueprint: Blueprin
     override val assetsDirectories: Collection<VirtualFile> = BlueprintHelper.collectBlueprintAssets(blueprint, sdk)
     override val assetsDirectoryUrls: Collection<String> = assetsDirectories.map { it.url }
     override val javaDirectories: Collection<VirtualFile> =
-        BlueprintHelper.collectBlueprintSources(blueprint, sdk).mapNotNull {
+        BlueprintHelper.collectBlueprintSources(blueprint, sdk, false).mapNotNull {
             VirtualFileManager.getInstance().findFileByUrl(it.toFileSystemUrl())
         }
     override val javaDirectoryUrls: Collection<String> = javaDirectories.map { it.url }
