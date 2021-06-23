@@ -61,33 +61,33 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
                 continue
             }
 
-            val dir = root.directory
-            val hasJavaRoot = existingRoots.firstOrNull {
-                FileUtil.isAncestor(dir, it, false)
-            } != null
+            val content = mutableMapOf<String, MutableList<DetectedSourceRoot>>()
 
-            if (!hasJavaRoot) {
-                val content = mutableListOf<DetectedSourceRoot>()
-
-                root.blueprints.flatMap { blueprint ->
-                    if (blueprint is BlueprintWithSources) {
-                        blueprint.sources.mapNotNull { it as? GlobItem }.map { it.toFullPath(root.directory) }
-                    } else {
-                        emptyList()
+            root.blueprints.flatMap { blueprint ->
+                if (blueprint is BlueprintWithSources) {
+                    blueprint.sources.mapNotNull { it as? GlobItem }.map {
+                        blueprint.name to it.toFullPath(root.directory)
                     }
-                }.toHashSet()
-                    .map {
-                        JavaModuleSourceRoot(it, null, "JAVA")
-                    }.forEach {
-                        content.add(it)
-                    }
-
-                val module = ModuleDescriptor(root.directory, JavaModuleType.getModuleType(), content)
-                module.name = root.blueprints.filter {
-                    AospProjectHelper.shouldHaveFacet(it)
-                }.firstOrNull()?.name ?: module.name
-                modules.add(module)
+                } else {
+                    emptyList()
+                }
+            }.toHashSet().filterNot { (_ , sourceRoot) ->
+                existingRoots.any { existingRoot ->
+                    FileUtil.isAncestor(sourceRoot, existingRoot, false)
+                }
+            }.map { (name, sourceRoot) ->
+                name to JavaModuleSourceRoot(sourceRoot, "JAVA", false)
+            }.forEach { (name, sourceRoot) ->
+                content.getOrPut(name) {
+                    mutableListOf()
+                }.add(sourceRoot)
             }
+
+            content.map { (name, sourceRoots) ->
+                ModuleDescriptor(root.directory, JavaModuleType.getModuleType(), sourceRoots).also {
+                    it.name = name
+                }
+            }.forEach(modules::add)
         }
 
         projectDescriptor.modules = modules
