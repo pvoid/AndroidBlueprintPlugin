@@ -13,15 +13,6 @@
     Adds support for android blueprints and allows to develop android apps as a part of ths system
     ]]></description>
 
-    <version>0.9.5-ALPHA</version>
-    <change-notes><![CDATA[
-    <ul>
-        <li>Autocompletion in blueprints file is significantly improved</li>
-        <li>If AOSP Source Code SDK is not configured, plugin tries to configure it based on the project path</li>
-        <li>Generated sources from AIDL libraries are not shown in Android pane</li>
-    </ul>
-    ]]></change-notes>
-
     <idea-version since-build="211.7142.45"/>
 
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
