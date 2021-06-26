@@ -16,6 +16,7 @@ class BlueprintsFactory {
         "java_defaults" -> createJavaDefault(values)
         "filegroup" -> createFileGroup(values)
         "java_library", "java_library_host", "java_library_static" -> createJavaLibrary(values)
+        "java_binary", "java_binary_host" -> createJavaBinary(values)
         "java_import" -> createJavaImport(values, path)
         "java_sdk_library" -> createJavaSdkLibrary(values)
         "sysprop_library" -> createSyspropLibrary(values)
@@ -100,6 +101,22 @@ class BlueprintsFactory {
             pattern.mapNotNull { it as? String }.map { SourceSet(it) }
         } ?: emptyList()
         return FileGroupBlueprint(name, sources)
+    }
+
+    private fun createJavaBinary(values: Map<String, Any>): Blueprint? {
+        val name = values["name"] as? String ?: return null
+        val sources = (values["srcs"] as? List<*>)?.let { pattern ->
+            pattern.mapNotNull { it as? String }.map { SourceSet(it) }
+        } ?: emptyList()
+        val libs = mutableListOf<String>()
+        (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
+            libs.add(it)
+        }
+        (values["libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
+            libs.add(it)
+        }
+        val defaults = (values["defaults"] as? List<*>)?.mapNotNull { it as? String  } ?: emptyList()
+        return JavaBinaryBlueprint(name, sources, libs, defaults)
     }
 
     private fun createJavaLibrary(values: Map<String, Any>): Blueprint? {

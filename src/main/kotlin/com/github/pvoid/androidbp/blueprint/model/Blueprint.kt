@@ -110,13 +110,26 @@ class FileGroupBlueprint(
     override val sources: List<SourceSet>,
 ) : Blueprint, BlueprintWithSources
 
+class JavaBinaryBlueprint(
+    override val name: String,
+    override val sources: List<SourceSet>,
+    override val dependencies: List<String>,
+    override val defaults: List<String>
+) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults
+
 class JavaLibraryBlueprint(
     override val name: String,
     override val sources: List<SourceSet>,
     override val dependencies: List<String>,
     override val defaults: List<String>
 ) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults, BlueprintWithArtifacts {
-    override fun getArtifacts(basePath: File): List<File> = listOf(File(basePath, "android_common/combined/$name.jar"))
+    override fun getArtifacts(basePath: File): List<File> {
+        var file = File(basePath, "android_common/combined/$name.jar")
+        if (!file.exists()) {
+            file = File(basePath, "android_common/turbine-combined/$name.jar")
+        }
+        return listOf(file)
+    }
 }
 
 class JavaImportBlueprint(
