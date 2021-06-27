@@ -48,7 +48,7 @@ class AospProjectSystemSyncManager(
 
     private var mBlueprints: List<Blueprint> = emptyList()
 
-    private val mWatchedFiles = mutableListOf<String>()
+    private var mWatchedFiles = listOf<String>()
 
     val blueprints: List<Blueprint>
         get() = mBlueprints
@@ -78,10 +78,10 @@ class AospProjectSystemSyncManager(
     override fun getLastSyncResult() = ProjectSystemSyncManager.SyncResult.SUCCESS
 
     private fun doSync() {
-        mWatchedFiles.clear()
+        val watchedFiles = mutableListOf<String>()
 
         mBlueprints = AospProjectHelper.blueprintFileForProject(mProject)?.let {
-            mWatchedFiles.add(it.url)
+            watchedFiles.add(it.url)
             BlueprintsTable.get(it)
         }?.filter(AospProjectHelper::shouldHaveFacet) ?: emptyList()
 
@@ -95,7 +95,7 @@ class AospProjectSystemSyncManager(
             libs.mapNotNull { it.name }
                 .mapNotNull { sdk.aospSdkData?.getBlueprintFile(it) }
                 .forEach {
-                    mWatchedFiles.add(it.url)
+                    watchedFiles.add(it.url)
                 }
 
             // Updating facets
@@ -131,10 +131,11 @@ class AospProjectSystemSyncManager(
         }
 
         mSyncRequired = false
-        AppUIUtil.invokeLaterIfProjectAlive(mProject)
-        {
+        AppUIUtil.invokeLaterIfProjectAlive(mProject) {
             mProject.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
                 .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         }
+
+        mWatchedFiles = watchedFiles
     }
 }

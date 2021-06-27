@@ -95,7 +95,7 @@ private class AospAndroidProjectSystem(
 
     override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
         override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
-            if (mSyncManager.isSyncNeeded() && mSyncManager.blueprints.isEmpty()) {
+            if (mSyncManager.isSyncNeeded()) {
                 mProject.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
             }
 

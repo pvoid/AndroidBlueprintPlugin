@@ -13,6 +13,8 @@ import com.github.pvoid.androidbp.addSourcesToLibrary
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.toFileSystemUrl
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -38,6 +40,7 @@ interface AospSdkHelper {
     fun getLibraryBlueprint(name: String, sdk: Sdk): VirtualFile?
     fun getCachePath(blueprint: Blueprint, sdk: Sdk): File?
     fun updateAdditionalData(sdk: Sdk, indicator: ProgressIndicator)
+    fun updateAdditionalDataForBlueprint(sdk: Sdk, blueprintFile: VirtualFile, indicator: ProgressIndicator)
     fun setUpAdditionalData(sdk: Sdk, modificator: SdkModificator, indicator: ProgressIndicator)
     fun isAospSourcePath(pathName: File): Boolean
 
@@ -145,9 +148,37 @@ class AospSdkHelperImpl: AospSdkHelper {
 
     override fun updateAdditionalData(sdk: Sdk, indicator: ProgressIndicator) {
         val sdkModificator = sdk.sdkModificator
-        AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
-        WriteAction.runAndWait<Throwable> {
-            sdkModificator.commitChanges()
+        ReadAction.run<Throwable> {
+            AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
+            WriteAction.runAndWait<Throwable> {
+                sdkModificator.commitChanges()
+            }
+        }
+    }
+
+    override fun updateAdditionalDataForBlueprint(sdk: Sdk, blueprintFile: VirtualFile, indicator: ProgressIndicator) {
+        val projects = sdk.aospSdkData?.projects
+            ?.filter { (_, path) -> path != blueprintFile.path }
+            ?.toMutableMap() ?: return
+
+        val blueprints = FileReader(blueprintFile.path).use {
+            val factory = BlueprintCupSymbolFactory(File(blueprintFile.path).parentFile)
+            BlueprintParser(BlueprintLexer(it, factory)).parse()
+            factory.blueprints
+        }.map {
+            it.name to blueprintFile.path
+        }.toMap(projects)
+
+        val androidSdk = AndroidSdks.getInstance().allAndroidSdks.firstOrNull() ?: return
+        val platformVersion = sdk.aospSdkData?.platformVersion ?: return
+
+        ApplicationManager.getApplication().invokeAndWait {
+            WriteAction.run<Throwable> {
+                sdk.sdkModificator.apply {
+                    sdkAdditionalData = AospSdkData(sdk, androidSdk, projects.toMap(), platformVersion)
+                    commitChanges()
+                }
+            }
         }
     }
 
