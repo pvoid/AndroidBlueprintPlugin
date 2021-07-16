@@ -21,6 +21,7 @@ class BlueprintsFactory {
         "java_sdk_library" -> createJavaSdkLibrary(values)
         "sysprop_library" -> createSyspropLibrary(values)
         "aidl_interface" -> createAidlInterface(values)
+        "hidl_interface" -> createHidlInterface(values)
         else -> createUnsupportedBlueprint(values)
     }
 
@@ -191,6 +192,21 @@ class BlueprintsFactory {
         }
 
         return AidlJavaInterfaceBlueprint(name, sources, libs)
+    }
+
+    private fun createHidlInterface(values: Map<String, Any>): Blueprint? {
+        val name = values["name"] as? String ?: return null
+        val sources = (values["srcs"] as? List<*>)?.let { pattern ->
+            pattern.mapNotNull { it as? String }.map { SourceSet(it) }
+        } ?: emptyList()
+
+        val parts = name.split('@')
+        if (parts.size != 2) {
+            return null
+        }
+
+        val genJava = values["gen_java"] as? Boolean == true
+        return HidlInterfaceLibrary(name, parts[0], parts[1], sources, genJava)
     }
 
     private fun createUnsupportedBlueprint(values: Map<String, Any>): Blueprint? {

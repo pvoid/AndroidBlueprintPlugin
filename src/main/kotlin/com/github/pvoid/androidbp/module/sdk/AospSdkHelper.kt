@@ -94,9 +94,25 @@ class AospSdkHelperImpl: AospSdkHelper {
                 if (libraryName.endsWith(".stubs") && !sdkData.projects.containsKey(libraryName)) {
                     libraryName = libraryName.dropLast(6)
                 }
-                // Convert java aidls to a real link
+                // Convert java aidls or hidl to a real link
                 if (libraryName.endsWith("-java") && !sdkData.projects.containsKey(libraryName)) {
-                    libraryName = libraryName.dropLast(5)
+                    var drop = 5
+                    var version: String? = null
+                    // Check if it's a link to HIDL
+                    val pos = libraryName.asSequence().take(libraryName.length - drop).indexOfLast { it == '-' }
+                    if (pos != -1 && libraryName[pos + 1] == 'V') {
+                        version = libraryName.substring(pos + 2, libraryName.length - drop)
+                        if (version.all { it.isDigit() || it == '.' }) {
+                            drop = libraryName.length - pos
+                        } else {
+                            version = null
+                        }
+                    }
+                    libraryName = libraryName.dropLast(drop)
+                    // If there is a version we must add it to a library name
+                    version?.let {
+                        libraryName += "@$version"
+                    }
                 }
 
                 val blueprintFile = sdkData.projects[libraryName]?.let { File(it) } ?: continue

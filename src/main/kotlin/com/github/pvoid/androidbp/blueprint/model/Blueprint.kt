@@ -171,6 +171,22 @@ class AidlJavaInterfaceBlueprint(
     }
 }
 
+class HidlInterfaceLibrary(
+    override val name: String,
+    val cleanName: String,
+    val version: String,
+    override val sources: List<SourceSet>,
+    val genJava: Boolean
+) : Blueprint, BlueprintWithSources, BlueprintWithDynamicSources, BlueprintWithArtifacts {
+    override fun getSources(basePath: File): File  = File(basePath.absolutePath.dropLast(version.length + 1) + "-V$version-java_gen_java", "gen/srcs/")
+
+    override fun getArtifacts(basePath: File): List<File> = if (genJava) {
+        listOf(File(basePath.absolutePath.dropLast(version.length + 1) + "-V$version-java", "android_common/turbine-combined/$cleanName-V$version-java.jar"))
+    } else {
+        emptyList()
+    }
+}
+
 class UnsupportedBlueprint(
     override val name: String
 ) : Blueprint
