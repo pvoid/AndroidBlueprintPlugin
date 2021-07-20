@@ -8,6 +8,7 @@ package com.github.pvoid.androidbp.module
 
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.android.AospAndroidModel
@@ -21,19 +22,24 @@ import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modifyModules
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.*
 import org.jetbrains.jps.model.java.JavaResourceRootType
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 
 interface AospProjectHelper {
@@ -55,6 +61,8 @@ interface AospProjectHelper {
     fun updateFacet(sdk: Sdk, blueprint: Blueprint, facet: AndroidFacet)
 
     fun shouldHaveFacet(blueprint: Blueprint): Boolean
+
+    fun updateSourceRoots(project: Project, blueprints: List<Blueprint>)
 
     companion object : AospProjectHelper by AospProjectHelperImpl()
 }
@@ -203,7 +211,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
             if (blueprint is AndroidAppBlueprint) AndroidProjectTypes.PROJECT_TYPE_APP else AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 
         val localRes = (blueprint as? BlueprintWithResources)?.resources?.firstOrNull() as? GlobItem
-        facet.properties.RES_FOLDER_RELATIVE_PATH =  localRes?.toRelativeString()
+        facet.properties.RES_FOLDER_RELATIVE_PATH = localRes?.toRelativeString()
 
         val localAssets = (blueprint as? BlueprintWithAssets)?.assets?.firstOrNull() as? GlobItem
         facet.properties.ASSETS_FOLDER_RELATIVE_PATH = localAssets?.toRelativeString()
@@ -232,9 +240,25 @@ private class AospProjectHelperImpl : AospProjectHelper {
         val resources = blueprints.filterIsInstance<BlueprintWithResources>().flatMap {
             BlueprintHelper.collectBlueprintResources(it, sdk)
         }
+        val sources = blueprints.filterIsInstance<BlueprintWithSources>().flatMap {
+            BlueprintHelper.collectBlueprintSources(it, sdk, false)
+        }.asSequence().mapNotNull {
+            if (it.isFile) it.parentFile else it
+        }.sortedBy {
+            it.absolutePath
+        }.fold(mutableListOf<File>()) { acc, item ->
+            val last = acc.lastOrNull()
+            if (last == null || !FileUtil.isAncestor(last, item, false)) {
+                acc.add(item)
+            }
+            acc
+        }.mapNotNull { file ->
+            VirtualFileManager.getInstance().findFileByUrl(file.toFileSystemUrl())
+        }
 
         WriteAction.runAndWait<Throwable> {
-            addSourceRootFolder(model, resources)
+            addResourcesRootFolder(model, resources)
+            addSourceRootFolder(model, sources)
             model.commit()
         }
     }
@@ -243,7 +267,41 @@ private class AospProjectHelperImpl : AospProjectHelper {
         blueprint is AndroidAppBlueprint || blueprint is AndroidLibraryBlueprint
                 || blueprint is JavaSdkLibraryBlueprint || blueprint is AidlJavaInterfaceBlueprint
 
-    private fun addSourceRootFolder(model:  ModifiableRootModel, resources: List<VirtualFile>) {
+    override fun updateSourceRoots(project: Project, blueprints: List<Blueprint>) {
+        project.modifyModules {
+            WriteAction.runAndWait<Throwable> {
+                val baseFile = File(project.basePath)
+                val module = this.modules.firstOrNull { module ->
+                    module.moduleTypeName == JavaModuleType.getModuleType().id
+                } ?: return@runAndWait
+                ModuleRootManager.getInstance(module).modifiableModel.also { model ->
+                    val dirs = blueprints.flatMap { blueprint ->
+                        when (blueprint) {
+                            is BlueprintWithAidls -> blueprint.aidls
+                            is BlueprintWithSources -> blueprint.sources
+                            else -> null
+                        }
+                    }.mapNotNull {
+                        (it as? GlobItem)?.toFullPath(baseFile)?.toVirtualFile()
+                    }
+                    addSourceRootFolder(model, dirs)
+                    model.commit()
+                }
+            }
+        }
+    }
+
+    private fun addSourceRootFolder(model: ModifiableRootModel, srcs: List<VirtualFile>) {
+        srcs.forEach { path ->
+            model.contentEntries.firstOrNull { entry ->
+                val root = entry.file?.toIoFile() ?: return@firstOrNull false
+                val src = path.toIoFile()
+                FileUtil.isAncestor(root, src, false)
+            }?.addSourceFolder(path, false)
+        }
+    }
+
+    private fun addResourcesRootFolder(model: ModifiableRootModel, resources: List<VirtualFile>) {
         val sourceType = JavaResourceRootType.RESOURCE
         val entry = model.contentEntries.first()
         resources.forEach {

@@ -10,10 +10,7 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.LOG
-import com.github.pvoid.androidbp.blueprint.model.Blueprint
-import com.github.pvoid.androidbp.blueprint.model.BlueprintWithAidls
-import com.github.pvoid.androidbp.blueprint.model.BlueprintsTable
-import com.github.pvoid.androidbp.blueprint.model.GlobItem
+import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.aospSdkData
 import com.google.common.util.concurrent.ListenableFuture
@@ -105,29 +102,8 @@ class AospProjectSystemSyncManager(
                 mPublisher.facetConfigurationChanged(facet)
             }
 
-            // Adding aidls to source roots
-            WriteAction.runAndWait<Throwable> {
-                val baseFile = File(mProject.basePath)
-                mBlueprints.filter { it is BlueprintWithAidls }.flatMap { blueprint ->
-                    (blueprint as BlueprintWithAidls).aidls
-                }.mapNotNull { (it as? GlobItem)?.toFullPath(baseFile)?.toVirtualFile() }.forEach { path ->
-                    mProject.modifyModules {
-                        this.modules.firstOrNull { module ->
-                            module.moduleTypeName == JavaModuleType.getModuleType().id
-                        }?.let { module ->
-                            ModuleRootManager.getInstance(module).modifiableModel.also { model ->
-                                model.contentEntries.firstOrNull { entry ->
-                                    val root = entry.file?.toIoFile() ?: return@firstOrNull false
-                                    val src = path.toIoFile() ?: return@firstOrNull false
-                                    FileUtil.isAncestor(root, src, false)
-                                }?.addSourceFolder(path, false)
-
-                                model.commit()
-                            }
-                        }
-                    }
-                }
-            }
+            // Adding aidls and sources to source roots
+            AospProjectHelper.updateSourceRoots(mProject, mBlueprints)
         }
 
         mSyncRequired = false

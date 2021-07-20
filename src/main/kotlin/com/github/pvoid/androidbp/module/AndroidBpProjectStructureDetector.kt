@@ -73,7 +73,7 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
                 }
             }.toHashSet().filterNot { (_ , sourceRoot) ->
                 existingRoots.any { existingRoot ->
-                    FileUtil.isAncestor(sourceRoot, existingRoot, false)
+                    FileUtil.isAncestor(existingRoot, sourceRoot, false)
                 }
             }.map { (name, sourceRoot) ->
                 name to JavaModuleSourceRoot(sourceRoot, "JAVA", false)
