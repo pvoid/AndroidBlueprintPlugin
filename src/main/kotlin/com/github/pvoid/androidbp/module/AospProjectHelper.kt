@@ -248,7 +248,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
             it.absolutePath
         }.fold(mutableListOf<File>()) { acc, item ->
             val last = acc.lastOrNull()
-            if (last == null || !FileUtil.isAncestor(last, item, false)) {
+            if (item.exists() && (last == null || !FileUtil.isAncestor(last, item, false))) {
                 acc.add(item)
             }
             acc
@@ -268,12 +268,12 @@ private class AospProjectHelperImpl : AospProjectHelper {
                 || blueprint is JavaSdkLibraryBlueprint || blueprint is AidlJavaInterfaceBlueprint
 
     override fun updateSourceRoots(project: Project, blueprints: List<Blueprint>) {
-        project.modifyModules {
-            WriteAction.runAndWait<Throwable> {
+        WriteAction.runAndWait<Throwable> {
+            project.modifyModules {
                 val baseFile = File(project.basePath)
                 val module = this.modules.firstOrNull { module ->
                     module.moduleTypeName == JavaModuleType.getModuleType().id
-                } ?: return@runAndWait
+                } ?: return@modifyModules
                 ModuleRootManager.getInstance(module).modifiableModel.also { model ->
                     val dirs = blueprints.flatMap { blueprint ->
                         when (blueprint) {
