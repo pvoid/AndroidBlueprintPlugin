@@ -45,7 +45,7 @@ class GlobItem(pattern: String) : SourceSet {
         this.pattern = chunks
     }
 
-    fun isPattern(): Boolean = pattern.size == 1 && pattern.first() is ExactMatchPattern
+    fun isPattern(): Boolean = pattern.size > 1 || pattern.first() !is ExactMatchPattern
 
     fun isFolder(): Boolean {
         val part = pattern.asReversed().firstOrNull { it is ExactMatchPattern } as? ExactMatchPattern ?: return false
