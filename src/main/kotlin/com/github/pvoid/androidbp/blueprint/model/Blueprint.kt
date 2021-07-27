@@ -69,9 +69,10 @@ class AndroidAppBlueprint(
     override val manifest: String,
     val privileged: Boolean,
     override val defaults: List<String>
-) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults, BlueprintWithResources, BlueprintWithAssets, BlueprintWithManifest {
+) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults, BlueprintWithResources, BlueprintWithAssets, BlueprintWithManifest, BlueprintWithArtifacts {
 
     override fun getR(basePath: File): File = File(basePath, "android_common/R.txt")
+    override fun getArtifacts(basePath: File): List<File>  = listOf(File(basePath, "android_common/javac/$name.jar"))
     override fun getResApk(basePath: File): File = File(basePath, "android_common/package-res.apk")
 }
 

@@ -6,38 +6,41 @@
 
 package com.github.pvoid.androidbp.module.android
 
+import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.projectmodel.ExternalLibrary
-import com.android.projectmodel.Library
-import com.android.projectmodel.RecursiveResourceFolder
-import com.android.tools.idea.project.ModuleBasedClassFileFinder
+import com.android.projectmodel.*
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.toPathString
+import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
+import com.github.pvoid.androidbp.blueprint.model.BlueprintWithArtifacts
 import com.github.pvoid.androidbp.blueprint.model.BlueprintsTable
+import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.AospSdkHelper
-import com.github.pvoid.androidbp.module.sdk.AospSdkType
+import com.github.pvoid.androidbp.toJarFileUrl
 import com.google.common.collect.ImmutableList
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.JarFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
-import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import java.io.File
+import java.nio.file.Paths
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
 
@@ -45,11 +48,13 @@ class AospAndroidModuleSystem(
     val project: Project,
     override val module: Module
 ) : AndroidModuleSystem,
-    ClassFileFinder by ModuleBasedClassFileFinder(module),
+    ClassFileFinder,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
+    private val mIdProvider = BlueprintIdProvider(module)
+
     override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-        return Triple(emptyList(), dependenciesToAdd, "")
+        return Triple(emptyList(), emptyList(), "")
     }
 
     override fun canGeneratePngFromVectorGraphics(): CapabilityStatus = CapabilityNotSupported()
@@ -67,22 +72,14 @@ class AospAndroidModuleSystem(
 
     override val isMlModelBindingEnabled: Boolean = false
 
-    override fun getPackageName(): String? {
-        val facet = AndroidFacet.getInstance(module)!!
-        val cachedValue = facet.cachedValueFromPrimaryManifest {
-            packageName.nullize(true)
-        }
-        return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
-    }
+    override fun getPackageName(): String = mIdProvider.packageName
 
     override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
     override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope
         = module.getModuleWithDependenciesAndLibrariesScope(false)
 
-    override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-        return null
-    }
+    override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
     override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
         val result = mutableListOf<Library>()
@@ -162,14 +159,48 @@ class AospAndroidModuleSystem(
         return null // TODO
     }
 
-    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-        return BlueprintIdProvider(module)
-    }
+    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider = mIdProvider
 
-    override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
-        return BlueprintIdProvider(module)
-    }
+    override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = mIdProvider
 
     override val submodules: Collection<Module>
-        = emptyList() //getSubmodules(project, null)
+        = getSubmodules(project, null)
+
+    override fun findClassFile(fqcn: String): VirtualFile? {
+        val blueprintFile = AospProjectHelper.blueprintFileForProject(project) ?: return null
+        val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
+        val file = BlueprintsTable.get(blueprintFile).asSequence()
+            .filterIsInstance(BlueprintWithArtifacts::class.java).flatMap { blueprint ->
+                AospSdkHelper.getCachePath(blueprint, sdk)?.let {
+                    blueprint.getArtifacts(it)
+                } ?: emptyList()
+            }.mapNotNull {
+                it.toJarFileUrl()
+            }.map {
+                findClassFileInOutputRoot(it, fqcn)
+            }.firstOrNull()
+
+        if (file != null) {
+            return file
+        }
+
+        return ModuleRootManager.getInstance(module).orderEntries.asSequence().filterIsInstance(LibraryOrderEntry::class.java).flatMap {
+            it.getFiles(OrderRootType.CLASSES).asSequence()
+        }.mapNotNull {
+            findClassFileInOutputRoot(it, fqcn)
+        }.firstOrNull()
+    }
+
+    private fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFile? {
+        if (!outputRoot.exists()) return null
+
+        val pathSegments = fqcn.split(".").toTypedArray()
+        pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
+        val outputBase = (JarFileSystem.getInstance().getJarRootForLocalFile(outputRoot) ?: outputRoot)
+
+        val classFile = VfsUtil.findRelativeFile(outputBase, *pathSegments)
+            ?: VfsUtil.findFile(Paths.get(outputBase.path, *pathSegments), true)
+
+        return if (classFile != null && classFile.exists()) classFile else null
+    }
 }
