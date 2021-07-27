@@ -13,7 +13,7 @@ apply plugin: "kotlin"
 apply plugin: "org.jetbrains.intellij"
 
 group 'com.github.pvoid.androidbp'
-version '0.9.6-ALPHA'
+version '0.9.7-ALPHA'
 
 repositories {
     mavenCentral()
@@ -33,16 +33,17 @@ test {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2021.1.1'
+    version '2021.1.3'
     type 'IC'
     plugins = ['java', 'android']
 }
 patchPluginXml {
     changeNotes """
       <ul>
-        <li>Autocompletion in blueprints file is significantly improved</li>
-        <li>If AOSP Source Code SDK is not configured, plugin tries to configure it based on the project path</li>
-        <li>Generated sources from AIDL libraries are not shown in Android pane</li>
+        <li>Layout preview is fixed now</li>
+        <li>All source roots are added even for non-android projects</li>
+        <li>Project structure renews if blueprints have been changed</li>
+        <li>Some HIDL support was added</li>
       </ul>"""
 }
 
