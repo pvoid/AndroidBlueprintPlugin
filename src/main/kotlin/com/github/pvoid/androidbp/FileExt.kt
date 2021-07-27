@@ -11,6 +11,7 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
@@ -20,17 +21,19 @@ fun File.getSystemIndependentPath(): String
 fun File.toFileSystemUrl(): String
         = StandardFileSystems.FILE_PROTOCOL_PREFIX + this.getSystemIndependentPath() + "/"
 
+fun File.toJarFileUrl(): VirtualFile? {
+    val url = JarFileSystem.PROTOCOL_PREFIX + this.getSystemIndependentPath() + JarFileSystem.JAR_SEPARATOR + "/"
+    return VirtualFileManager.getInstance().findFileByUrl(url)
+}
 
 fun File.addClassesToLibrary(lib: Library.ModifiableModel) {
-    val url = JarFileSystem.PROTOCOL_PREFIX + this.getSystemIndependentPath() + JarFileSystem.JAR_SEPARATOR + "/"
-    VirtualFileManager.getInstance().findFileByUrl(url)?.let {
+    toJarFileUrl()?.let {
         lib.addRoot(it, OrderRootType.CLASSES)
     }
 }
 
 fun File.addSourcesToLibrary(lib: Library.ModifiableModel) {
-    val url = JarFileSystem.PROTOCOL_PREFIX + this.getSystemIndependentPath() + JarFileSystem.JAR_SEPARATOR + "/"
-    VirtualFileManager.getInstance().findFileByUrl(url)?.let {
+    toJarFileUrl()?.let {
         lib.addRoot(it, OrderRootType.SOURCES)
     }
 }
