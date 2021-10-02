@@ -14,10 +14,13 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.AOSP_SDK_TYPE_NAME
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
@@ -39,7 +42,7 @@ class AospProjectSystemProvider(val project: Project) : AndroidProjectSystemProv
     override val id: String = AOSP_PROJECT_SYSTEM_ID
 
     override val projectSystem: AndroidProjectSystem by lazy {
-        AospAndroidProjectSystem(project)
+        AospAndroidProjectSystem(project, null)
     }
 
     override fun isApplicable(): Boolean {
@@ -49,6 +52,7 @@ class AospProjectSystemProvider(val project: Project) : AndroidProjectSystemProv
 
 private class AospAndroidProjectSystem(
     private val mProject: Project,
+    private val mIdProvider: ApplicationIdProvider?
 ) : AndroidProjectSystem {
 
     private val mSyncManager = AospProjectSystemSyncManager(mProject)
@@ -78,7 +82,7 @@ private class AospAndroidProjectSystem(
             .toList()
     }
 
-    override fun getModuleSystem(module: Module): AndroidModuleSystem = AospAndroidModuleSystem(mProject, module)
+    override fun getModuleSystem(module: Module): AndroidModuleSystem = AospAndroidModuleSystem(mProject, module, mSyncManager)
 
     override fun getPsiElementFinders(): List<PsiElementFinder> {
         return listOf(
@@ -103,6 +107,12 @@ private class AospAndroidProjectSystem(
             return BlueprintSourceProviders(mProject.basePath, sdk, mSyncManager.blueprints)
         }
     }
+
+    override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
+        return null
+    }
+
+    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = mIdProvider
 
     inner class BlueprintChangeListener(
         bus: MessageBus,

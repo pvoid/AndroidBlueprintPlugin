@@ -149,7 +149,8 @@ class BlueprintsFactory {
             libs.add(it)
         }
         val defaults = (values["defaults"] as? List<*>)?.mapNotNull { it as? String  } ?: emptyList()
-        return JavaSdkLibraryBlueprint(name, sources, libs, defaults)
+        val apiPackages = (values["api_packages"] as? List<*>)?.mapNotNull { it as? String  } ?: emptyList()
+        return JavaSdkLibraryBlueprint(name, sources, libs, defaults, apiPackages)
     }
 
     private fun createJavaImport(values: Map<String, Any>, path: File): Blueprint? {

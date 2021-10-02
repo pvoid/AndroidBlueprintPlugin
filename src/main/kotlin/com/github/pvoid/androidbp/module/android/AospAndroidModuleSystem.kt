@@ -12,11 +12,8 @@ import com.android.projectmodel.*
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.toPathString
-import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
 import com.github.pvoid.androidbp.blueprint.model.BlueprintWithArtifacts
 import com.github.pvoid.androidbp.blueprint.model.BlueprintsTable
@@ -32,26 +29,23 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.CachedValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.nio.file.Paths
 
-private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
-
 class AospAndroidModuleSystem(
     val project: Project,
-    override val module: Module
+    override val module: Module,
+    blueprintsProvider: BlueprintsProvider
 ) : AndroidModuleSystem,
     ClassFileFinder,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
-    private val mIdProvider = BlueprintIdProvider(module)
+    private val mIdProvider = BlueprintIdProvider(module, blueprintsProvider)
 
     override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         return Triple(emptyList(), emptyList(), "")
@@ -81,8 +75,8 @@ class AospAndroidModuleSystem(
 
     override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
-    override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
-        val result = mutableListOf<Library>()
+    override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<ExternalLibrary> {
+        val result = mutableListOf<ExternalLibrary>()
         val manager = ProjectRootManager.getInstance(project)
         val sdk = manager.projectSdk ?: return emptyList()
 
@@ -113,13 +107,13 @@ class AospAndroidModuleSystem(
             val resApk  = BlueprintHelper.getBlueprintResApk(libraryBlueprint, sdk)
                     ?: return@forEachLibrary true
 
-            result.add(ExternalLibrary(
+            result.add(ExternalLibraryImpl(
                     address = libraryName,
                     resFolder =  RecursiveResourceFolder(res.first().toPathString()),
                     manifestFile = manifest.toPathString(),
                     classJars = library.getFiles(OrderRootType.CLASSES).map { it.toPathString() },
                     symbolFile = symbolFile.toPathString(),
-                    resApkFile = resApk.toPathString()
+                    resApkFile = resApk.toPathString(),
             ))
 
             true
@@ -148,28 +142,28 @@ class AospAndroidModuleSystem(
 
     override fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
 
-    override fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
+    override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
 
     override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
 
-    override fun getApkProvider(
-        runConfiguration: RunConfiguration,
-        targetDeviceSpec: AndroidDeviceSpec?
-    ): ApkProvider? {
-        return null // TODO
-    }
-
-    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider = mIdProvider
-
     override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = mIdProvider
+
+    override val applicationRClassConstantIds: Boolean = false
+
+    override val testRClassConstantIds: Boolean = false
 
     override val submodules: Collection<Module>
         = getSubmodules(project, null)
 
     override fun findClassFile(fqcn: String): VirtualFile? {
+        return findClassFileInModule(fqcn) ?: findClassInLibraries(fqcn)
+    }
+
+    private fun findClassFileInModule(fqcn: String): VirtualFile? {
         val blueprintFile = AospProjectHelper.blueprintFileForProject(project) ?: return null
         val sdk = ProjectRootManager.getInstance(project).projectSdk ?: return null
-        val file = BlueprintsTable.get(blueprintFile).asSequence()
+
+        return BlueprintsTable.get(blueprintFile).asSequence()
             .filterIsInstance(BlueprintWithArtifacts::class.java).flatMap { blueprint ->
                 AospSdkHelper.getCachePath(blueprint, sdk)?.let {
                     blueprint.getArtifacts(it)
@@ -179,11 +173,9 @@ class AospAndroidModuleSystem(
             }.map {
                 findClassFileInOutputRoot(it, fqcn)
             }.firstOrNull()
+    }
 
-        if (file != null) {
-            return file
-        }
-
+    private fun findClassInLibraries(fqcn: String): VirtualFile? {
         return ModuleRootManager.getInstance(module).orderEntries.asSequence().filterIsInstance(LibraryOrderEntry::class.java).flatMap {
             it.getFiles(OrderRootType.CLASSES).asSequence()
         }.mapNotNull {

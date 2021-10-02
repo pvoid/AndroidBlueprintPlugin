@@ -8,7 +8,6 @@ package com.github.pvoid.androidbp.module.android
 
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.AospProjectHelper
@@ -16,25 +15,18 @@ import com.github.pvoid.androidbp.module.sdk.aospSdkData
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modifyModules
-import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
-import java.io.File
 import java.util.concurrent.Executors
 
 private val SYNC_EXECUTOR = Executors.newSingleThreadExecutor()
 
 class AospProjectSystemSyncManager(
     private val mProject: Project
-) : ProjectSystemSyncManager {
+) : ProjectSystemSyncManager, BlueprintsProvider {
 
     @Volatile
     private var mSyncRequired: Boolean = true
@@ -47,7 +39,7 @@ class AospProjectSystemSyncManager(
 
     private var mWatchedFiles = listOf<String>()
 
-    val blueprints: List<Blueprint>
+    override val blueprints: List<Blueprint>
         get() = mBlueprints
 
     fun setSyncRequired() {

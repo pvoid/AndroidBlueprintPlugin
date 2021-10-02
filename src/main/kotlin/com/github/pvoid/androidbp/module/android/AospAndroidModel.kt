@@ -6,15 +6,16 @@
 
 package com.github.pvoid.androidbp.module.android
 
-import com.android.builder.model.AaptOptions.Namespacing
 import com.android.projectmodel.DynamicResourceValue
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.lint.detector.api.Desugaring
 import com.github.pvoid.androidbp.blueprint.model.Blueprint
 import com.github.pvoid.androidbp.blueprint.model.BlueprintWithManifest
+import com.github.pvoid.androidbp.blueprint.model.JavaSdkLibraryBlueprint
 import com.github.pvoid.androidbp.module.sdk.AospSdkData
 import com.github.pvoid.androidbp.toFileSystemUrl
 import com.intellij.openapi.application.ApplicationManager
@@ -40,7 +41,11 @@ class AospAndroidModel(
 
     override fun getApplicationId(): String {
         return ReadAction.compute<String, Throwable> {
-            getManifest()?.`package`?.value ?: ""
+            if (mBlueprint is JavaSdkLibraryBlueprint) {
+                mBlueprint.apiPackages.firstOrNull()
+            } else {
+                getManifest()?.`package`?.value
+            } ?: "com.example"
         }
     }
 

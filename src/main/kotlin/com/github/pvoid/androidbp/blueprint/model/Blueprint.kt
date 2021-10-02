@@ -144,7 +144,8 @@ class JavaSdkLibraryBlueprint(
     override val name: String,
     override val sources: List<SourceSet>,
     override val dependencies: List<String>,
-    override val defaults: List<String>
+    override val defaults: List<String>,
+    val apiPackages: List<String>
 ) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults, BlueprintWithArtifacts {
     override fun getArtifacts(basePath: File): List<File> = listOf(File(basePath, "android_common/turbine-combined/$name.jar"))
 }

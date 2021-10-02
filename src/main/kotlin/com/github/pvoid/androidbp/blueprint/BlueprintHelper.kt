@@ -50,7 +50,7 @@ class BlueprintHelperImpl : BlueprintHelper {
             }?.let(result::add)
         }
 
-        return result;
+        return result
     }
 
     override fun collectBlueprintAssets(blueprint: Blueprint, sdk: Sdk): Set<VirtualFile> {
