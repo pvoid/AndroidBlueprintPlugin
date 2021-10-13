@@ -13,7 +13,7 @@ apply plugin: "kotlin"
 apply plugin: "org.jetbrains.intellij"
 
 group 'com.github.pvoid.androidbp'
-version '0.9.7-ALPHA'
+version '0.9.8-ALPHA'
 
 repositories {
     mavenCentral()
