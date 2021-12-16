@@ -15,6 +15,7 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import org.jetbrains.kotlin.backend.common.pop
 import java.io.File
 import java.util.*
 
@@ -28,6 +29,7 @@ interface BlueprintHelper {
     fun getBlueprintR(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintResApk(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeDynamic: Boolean): Set<File>
+    fun collectBlueprintDependencies(blueprint: Blueprint, sdk: Sdk): List<Blueprint>
 
     companion object : BlueprintHelper by BlueprintHelperImpl()
 }
@@ -130,6 +132,35 @@ class BlueprintHelperImpl : BlueprintHelper {
         }
 
         return sources
+    }
+
+    override fun collectBlueprintDependencies(blueprint: Blueprint, sdk: Sdk): List<Blueprint> {
+        val dependencies = mutableMapOf<String, Blueprint>()
+        val toProcess = mutableListOf(blueprint)
+        val sdkData = sdk.aospSdkData ?: return emptyList()
+
+        do {
+            val item = toProcess.pop()
+            if (item is BlueprintWithDependencies) {
+                item.dependencies.filterNot(dependencies::containsKey)
+                    .mapNotNull { name ->
+                        val file = sdkData.getBlueprintFile(name)
+                        if (file != null) {
+                            BlueprintsTable.get(file)
+                        } else {
+                            null
+                        }
+                    }
+                    .flatMap { it }
+                    .filterNot { dependencies.containsKey(it.name) }
+                    .forEach {
+                        toProcess.add(it)
+                        dependencies[it.name] = it
+                    }
+            }
+        } while (toProcess.isNotEmpty())
+
+        return dependencies.values.toList()
     }
 
     private fun collectBlueprintSources(data: AospSdkData, blueprintFile: File, blueprint: Blueprint, fetchSource: Blueprint.() -> List<SourceSet>): Set<File> {

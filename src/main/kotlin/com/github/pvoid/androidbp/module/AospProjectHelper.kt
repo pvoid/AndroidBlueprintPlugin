@@ -216,7 +216,12 @@ private class AospProjectHelperImpl : AospProjectHelper {
         val localAssets = (blueprint as? BlueprintWithAssets)?.assets?.firstOrNull() as? GlobItem
         facet.properties.ASSETS_FOLDER_RELATIVE_PATH = localAssets?.toRelativeString()
 
-        val resources = BlueprintHelper.collectBlueprintResources(blueprint, sdk)
+        val resources = mutableSetOf<VirtualFile>()
+        BlueprintHelper.collectBlueprintResources(blueprint, sdk).toCollection(resources)
+        BlueprintHelper.collectBlueprintDependencies(blueprint, sdk).flatMap {
+            BlueprintHelper.collectBlueprintResources(it, sdk)
+        }.toCollection(resources)
+
         facet.properties.RES_FOLDERS_RELATIVE_PATH = resources.joinToString(
             AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
         ) { it.url }
