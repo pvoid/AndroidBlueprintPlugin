@@ -62,8 +62,8 @@ class BlueprintSourceProvider(projectPath: String, sdk: Sdk, blueprint: Blueprin
             VirtualFileManager.getInstance().findFileByUrl(it.toFileSystemUrl())
         }
     override val javaDirectoryUrls: Collection<String> = javaDirectories.map { it.url }
-    override val jniDirectories: Collection<VirtualFile> = emptyList() // TODO: Add an actual paths
-    override val jniDirectoryUrls: Collection<String> = emptyList() // TODO: Add an actual paths
+    override val kotlinDirectories: Iterable<VirtualFile> = emptyList()
+    override val kotlinDirectoryUrls: Iterable<String> = emptyList()
     override val jniLibsDirectories: Collection<VirtualFile> = emptyList() // TODO: Add an actual paths
     override val jniLibsDirectoryUrls: Collection<String> = emptyList() // TODO: Add an actual paths
     override val manifestDirectories: Collection<VirtualFile> = emptyList()
@@ -98,8 +98,8 @@ private class EmptySourceProvider : NamedIdeaSourceProvider {
     override val assetsDirectoryUrls: Collection<String> = emptyList()
     override val javaDirectories: Collection<VirtualFile> = emptyList()
     override val javaDirectoryUrls: Collection<String> = emptyList()
-    override val jniDirectories: Collection<VirtualFile> = emptyList()
-    override val jniDirectoryUrls: Collection<String> = emptyList()
+    override val kotlinDirectories: Iterable<VirtualFile> = emptyList()
+    override val kotlinDirectoryUrls: Iterable<String> = emptyList()
     override val jniLibsDirectories: Collection<VirtualFile> = emptyList()
     override val jniLibsDirectoryUrls: Collection<String> = emptyList()
     override val manifestDirectories: Collection<VirtualFile> = emptyList()

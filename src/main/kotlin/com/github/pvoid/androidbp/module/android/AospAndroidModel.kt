@@ -61,8 +61,6 @@ class AospAndroidModel(
 
     override fun getTargetSdkVersion(): AndroidVersion = AndroidVersion(getPlatformVersion(), null)
 
-    override fun getVersionCode(): Int = 1 // TODO: Real version number
-
     override fun isGenerated(file: VirtualFile): Boolean = false
 
     override fun getClassJarProvider(): ClassJarProvider = mProjectJarsProvider

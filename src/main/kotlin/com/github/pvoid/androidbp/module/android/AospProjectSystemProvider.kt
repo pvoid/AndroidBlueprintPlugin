@@ -9,6 +9,7 @@ package com.github.pvoid.androidbp.module.android
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.navigator.getSubmodules
+import com.android.tools.idea.project.DefaultBuildManager
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -63,10 +64,6 @@ private class AospAndroidProjectSystem(
 
     override fun allowsFileCreation(): Boolean = false
 
-    override fun buildProject() {
-        throw AssertionError("Not supported")
-    }
-
     override fun getPathToAapt(): Path {
         return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(AospAndroidProjectSystem::class.java))
     }
@@ -113,6 +110,8 @@ private class AospAndroidProjectSystem(
     }
 
     override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = mIdProvider
+
+    override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
     inner class BlueprintChangeListener(
         bus: MessageBus,

@@ -13,8 +13,6 @@
     Adds support for android blueprints and allows to develop android apps as a part of ths system
     ]]></description>
 
-    <idea-version since-build="211.7142.45"/>
-
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
