@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jdom.Element
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData
+import org.jetbrains.android.sdk.AndroidSdkData
 import java.io.File
 
 private const val ELEMENT_BLUEPRINTS = "blueprints"
@@ -37,6 +38,13 @@ class AospSdkData(
 
     private val mAndroidSdkTarget: String? = (androidSdk.sdkAdditionalData as? AndroidSdkAdditionalData)?.buildTargetHashString
     private val mAndroidSdkPath: String? = androidSdk.homePath
+
+    val androidSdkData: AndroidSdkData?
+        get() = if (mAndroidSdkPath != null) {
+            AndroidSdkData.getSdkData(mAndroidSdkPath)
+        } else {
+            null
+        }
 
     init {
         buildTargetHashString = mAndroidSdkTarget // TODO: Change to current SDK label from AOSP

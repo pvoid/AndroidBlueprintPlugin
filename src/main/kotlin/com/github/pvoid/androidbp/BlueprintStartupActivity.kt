@@ -48,6 +48,7 @@ class BlueprintStartupActivity : StartupActivity {
                         indicator.text = "Adding android sdk support"
                         AospProjectHelper.addSourceRoots(project, projectSdk)
                         AospProjectHelper.addFacets(project, projectSdk)
+                        AospProjectHelper.fixLayoutLibrary(project, projectSdk)
                     }
                 } )
             } else {
@@ -73,6 +74,7 @@ class BlueprintStartupActivity : StartupActivity {
                                     indicator.text = "Adding android sdk support"
                                     AospProjectHelper.addSourceRoots(project, sdk)
                                     AospProjectHelper.addFacets(project, sdk)
+                                    AospProjectHelper.fixLayoutLibrary(project, sdk)
                                 }
                             }
                         })

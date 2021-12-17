@@ -31,7 +31,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.ui.AppUIUtil
 import com.intellij.util.messages.MessageBus
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
@@ -58,6 +57,7 @@ private class AospAndroidProjectSystem(
 
     private val mSyncManager = AospProjectSystemSyncManager(mProject)
 
+    @Suppress("unused")
     private val mListener = BlueprintChangeListener(mProject.messageBus, mSyncManager::isFileWatched)
 
     override fun getDefaultApkFile(): VirtualFile? = null // TODO: Link to a file in output?

@@ -6,16 +6,15 @@
 
 package com.github.pvoid.androidbp.module
 
+import android.content.res.BridgeAssetManagerExt
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.util.toIoFile
+import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.blueprint.BlueprintHelper
 import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.android.AospAndroidModel
-import com.github.pvoid.androidbp.module.sdk.AOSP_SDK_TYPE_NAME
-import com.github.pvoid.androidbp.module.sdk.AospSdkHelper
-import com.github.pvoid.androidbp.module.sdk.AospSdkType
-import com.github.pvoid.androidbp.module.sdk.aospSdkData
+import com.github.pvoid.androidbp.module.sdk.*
 import com.github.pvoid.androidbp.toFileSystemUrl
 import com.intellij.facet.FacetManager
 import com.intellij.facet.ModifiableFacetModel
@@ -38,6 +37,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.*
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
@@ -63,6 +63,8 @@ interface AospProjectHelper {
     fun shouldHaveFacet(blueprint: Blueprint): Boolean
 
     fun updateSourceRoots(project: Project, blueprints: List<Blueprint>)
+
+    fun fixLayoutLibrary(project: Project, sdk: Sdk)
 
     companion object : AospProjectHelper by AospProjectHelperImpl()
 }
@@ -294,6 +296,34 @@ private class AospProjectHelperImpl : AospProjectHelper {
                 }
             }
         }
+    }
+
+    override fun fixLayoutLibrary(project: Project, sdk: Sdk) {
+        val data = (sdk.sdkAdditionalData as AospSdkData).androidSdkData
+        val loaded = data?.targets?.any { target ->
+            try {
+                val compatTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
+                data.getTargetData(compatTarget).getLayoutLibrary(project)
+                true
+            } catch (e: UnsatisfiedLinkError) {
+                LOG.error("Can't load layout library", e)
+                false
+            } catch (e: Throwable) {
+                LOG.error("Can't load layout library", e)
+                false
+            }
+        } ?: false
+
+        if (loaded && isAssetsBridgeLoaded()) {
+            BridgeAssetManagerExt.init(sdk.homePath!!);
+        }
+    }
+
+    private fun isAssetsBridgeLoaded(): Boolean = try {
+        Class.forName("android.content.res.BridgeAssetManager")
+        true
+    } catch (e: ClassNotFoundException) {
+        false
     }
 
     private fun addSourceRootFolder(model: ModifiableRootModel, srcs: List<VirtualFile>) {
