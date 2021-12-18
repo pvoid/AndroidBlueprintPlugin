@@ -40,7 +40,7 @@ intellij {
     updateSinceUntilBuild true
 }
 patchPluginXml {
-    sinceBuild '211.7142.45'
+    sinceBuild '213.5744.223'
     changeNotes """
       <ul>
         <li>Layout preview is fixed now</li>
