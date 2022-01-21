@@ -43,7 +43,7 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
     }
 
     private val isLinux: Boolean by lazy {
-        System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("linux")
+        System.getProperty("os.name").lowercase(Locale.ENGLISH).contains("linux")
     }
 
     override fun saveAdditionalData(additionalData: SdkAdditionalData, additional: Element) {
