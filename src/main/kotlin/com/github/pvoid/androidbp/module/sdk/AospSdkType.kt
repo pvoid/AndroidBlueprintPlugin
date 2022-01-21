@@ -9,7 +9,6 @@ package com.github.pvoid.androidbp.module.sdk
 import com.android.tools.idea.sdk.AndroidSdks
 import com.github.pvoid.androidbp.LOG
 import com.github.pvoid.androidbp.ManifestInfo
-import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.getSystemIndependentPath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -109,8 +108,7 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
     override fun setupSdkPaths(sdk: Sdk) {
         val sdkModificator = sdk.sdkModificator
         setUpJdk(sdk, sdkModificator)
-
-        val scanTask = object : Task.Modal(null, "Indexing Blueprints", false) {
+        val scanTask = object : Task.ConditionalModal(null, "Indexing blueprints", false, ALWAYS_BACKGROUND) {
             override fun run(indicator: ProgressIndicator) {
                 AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
                 WriteAction.runAndWait<Throwable> {
