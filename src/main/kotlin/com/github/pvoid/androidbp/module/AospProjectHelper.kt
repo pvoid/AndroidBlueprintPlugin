@@ -21,9 +21,7 @@ import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.module.JavaModuleType
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.module.*
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modifyModules
@@ -279,7 +277,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
             project.modifyModules {
                 val baseFile = File(project.basePath)
                 val module = this.modules.firstOrNull { module ->
-                    module.moduleTypeName == JavaModuleType.getModuleType().id
+                    ModuleType.get(module).id == ModuleTypeId.JAVA_MODULE
                 } ?: return@modifyModules
                 ModuleRootManager.getInstance(module).modifiableModel.also { model ->
                     val dirs = blueprints.flatMap { blueprint ->
