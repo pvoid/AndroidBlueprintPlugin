@@ -25,6 +25,8 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
@@ -34,6 +36,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.messages.MessageBus
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
 
 val AOSP_PROJECT_SYSTEM_ID = "com.github.pvoid.androidbp.AospAndroidProjectSystem"
@@ -42,7 +45,7 @@ class AospProjectSystemProvider(val project: Project) : AndroidProjectSystemProv
     override val id: String = AOSP_PROJECT_SYSTEM_ID
 
     override val projectSystem: AndroidProjectSystem by lazy {
-        AospAndroidProjectSystem(project, null)
+        AospAndroidProjectSystem(project)
     }
 
     override fun isApplicable(): Boolean {
@@ -51,9 +54,8 @@ class AospProjectSystemProvider(val project: Project) : AndroidProjectSystemProv
 }
 
 private class AospAndroidProjectSystem(
-    private val mProject: Project,
-    private val mIdProvider: ApplicationIdProvider?
-) : AndroidProjectSystem {
+    private val mProject: Project
+) : AndroidProjectSystem, BlueprintsProvider {
 
     private val mSyncManager = AospProjectSystemSyncManager(mProject)
 
@@ -109,7 +111,18 @@ private class AospAndroidProjectSystem(
         return null
     }
 
-    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = mIdProvider
+    override val blueprints: List<Blueprint>
+        get() = AospProjectHelper.blueprintFileForProject(mProject)?.let {
+            BlueprintsTable.get(it)
+        }?.filter(AospProjectHelper::shouldHaveFacet) ?: emptyList()
+
+    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
+        return mProject.allModules().filter {
+            ModuleType.get(it).id == ModuleTypeId.JAVA_MODULE
+        }.first().let {
+            BlueprintIdProvider(it, this)
+        }
+    }
 
     override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
