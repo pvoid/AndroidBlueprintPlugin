@@ -32,6 +32,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -159,12 +161,11 @@ class AospAndroidModuleSystem(
 
         return BlueprintsTable.get(blueprintFile).asSequence()
             .filterIsInstance(BlueprintWithArtifacts::class.java).flatMap { blueprint ->
-                AospSdkHelper.getCachePath(blueprint, sdk)?.let {
-                    blueprint.getArtifacts(it)
-                } ?: emptyList()
+                val basePath = AospSdkHelper.getCachePath(blueprint, sdk)
+                listOf(File(basePath, "android_common/javac/classes"), File(basePath, "android_common/kotlinc/classes"))
             }.mapNotNull {
-                it.toJarFileUrl()
-            }.map {
+                it.toVirtualFile()
+            }.mapNotNull {
                 findClassFileInOutputRoot(it, fqcn)
             }.firstOrNull()
     }
