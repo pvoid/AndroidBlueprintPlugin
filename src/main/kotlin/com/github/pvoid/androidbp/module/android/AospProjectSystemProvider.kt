@@ -39,7 +39,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
 
-val AOSP_PROJECT_SYSTEM_ID = "com.github.pvoid.androidbp.AospAndroidProjectSystem"
+const val AOSP_PROJECT_SYSTEM_ID = "com.github.pvoid.androidbp.AospAndroidProjectSystem"
 
 class AospProjectSystemProvider(val project: Project) : AndroidProjectSystemProvider {
     override val id: String = AOSP_PROJECT_SYSTEM_ID
@@ -59,6 +59,25 @@ private class AospAndroidProjectSystem(
 
     private val mSyncManager = AospProjectSystemSyncManager(mProject)
 
+    private val moduleSystems = mutableMapOf<Module, AndroidModuleSystem>()
+
+    private val sourceProvidersFactory = object : SourceProvidersFactory {
+
+        private val providers = mutableMapOf<AndroidFacet, SourceProviders>()
+
+        override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
+            return providers.getOrPut(facet) {
+                if (mSyncManager.isSyncNeeded()) {
+                    mProject.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+                }
+
+                val sdk =
+                    ProjectRootManager.getInstance(mProject).projectSdk?.takeIf { it.sdkType.name == AOSP_SDK_TYPE_NAME }
+                BlueprintSourceProviders(mProject.basePath, sdk, blueprints)
+            }
+        }
+    }
+
     @Suppress("unused")
     private val mListener = BlueprintChangeListener(mProject.messageBus, mSyncManager::isFileWatched)
 
@@ -67,12 +86,19 @@ private class AospAndroidProjectSystem(
     override fun allowsFileCreation(): Boolean = false
 
     override fun getPathToAapt(): Path {
-        return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(AospAndroidProjectSystem::class.java))
+        return AaptInvoker.getPathToAapt(
+            AndroidSdks.getInstance().tryToChooseSdkHandler(),
+            LogWrapper(AospAndroidProjectSystem::class.java)
+        )
     }
 
     override fun getSyncManager(): ProjectSystemSyncManager = mSyncManager
 
-    override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet> {
+    override fun getAndroidFacetsWithPackageName(
+        project: Project,
+        packageName: String,
+        scope: GlobalSearchScope
+    ): Collection<AndroidFacet> {
         return ProjectFacetManager.getInstance(project)
             .getFacets(AndroidFacet.ID)
             .asSequence()
@@ -81,7 +107,9 @@ private class AospAndroidProjectSystem(
             .toList()
     }
 
-    override fun getModuleSystem(module: Module): AndroidModuleSystem = AospAndroidModuleSystem(mProject, module, mSyncManager)
+    override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleSystems.getOrPut(module) {
+        AospAndroidModuleSystem(mProject, module, mSyncManager)
+    }
 
     override fun getPsiElementFinders(): List<PsiElementFinder> {
         return listOf(
@@ -96,16 +124,7 @@ private class AospAndroidProjectSystem(
     override val submodules: Collection<Module>
         get() = getSubmodules(mProject, null)
 
-    override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-        override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
-            if (mSyncManager.isSyncNeeded()) {
-                mProject.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
-            }
-
-            val sdk = ProjectRootManager.getInstance(mProject).projectSdk?.takeIf { it.sdkType.name == AOSP_SDK_TYPE_NAME }
-            return BlueprintSourceProviders(mProject.basePath, sdk, mSyncManager.blueprints)
-        }
-    }
+    override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactory
 
     override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
         return null
@@ -117,9 +136,9 @@ private class AospAndroidProjectSystem(
         }?.filter(AospProjectHelper::shouldHaveFacet) ?: emptyList()
 
     override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-        return mProject.allModules().filter {
+        return mProject.allModules().first {
             ModuleType.get(it).id == ModuleTypeId.JAVA_MODULE
-        }.first().let {
+        }.let {
             BlueprintIdProvider(it, this)
         }
     }

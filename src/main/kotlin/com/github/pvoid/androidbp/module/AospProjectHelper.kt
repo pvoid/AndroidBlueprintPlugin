@@ -7,7 +7,6 @@
 package com.github.pvoid.androidbp.module
 
 import android.content.res.BridgeAssetManagerExt
-import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.LOG
@@ -55,8 +54,6 @@ interface AospProjectHelper {
     fun addFacets(project: Project, sdk: Sdk)
 
     fun addSourceRoots(project: Project, sdk: Sdk)
-
-    fun updateFacet(sdk: Sdk, blueprint: Blueprint, facet: AndroidFacet)
 
     fun shouldHaveFacet(blueprint: Blueprint): Boolean
 
@@ -177,15 +174,15 @@ private class AospProjectHelperImpl : AospProjectHelper {
             return
         }
 
-        val facets = FacetManager.getInstance(module)
+        val facetManager = FacetManager.getInstance(module)
         val model = ReadAction.compute<ModifiableFacetModel, Throwable> {
-            facets.createModifiableModel()
+            facetManager.createModifiableModel()
         }
 
         WriteAction.runAndWait<Throwable> {
-            val androidFacet = AndroidFacetType()
-            androidApps.map { blueprint ->
-                val facet: AndroidFacet? = facets.findFacet(AndroidFacet.ID, blueprint.name)
+            val androidFacetType = AndroidFacetType()
+            val updatedFacets = androidApps.map { blueprint ->
+                val facet: AndroidFacet? = facetManager.findFacet(AndroidFacet.ID, blueprint.name)
                 if (facet != null) {
                     blueprint to facet
                 } else {
@@ -195,39 +192,20 @@ private class AospProjectHelperImpl : AospProjectHelper {
                     config.state.GEN_FOLDER_RELATIVE_PATH_AIDL = "/.idea/cache/gen/"
                     config.state.ALLOW_USER_CONFIGURATION = false
 
-                    blueprint to androidFacet.createFacet(module, blueprint.name, config, null).also(model::addFacet)
+                    blueprint to androidFacetType.createFacet(module, blueprint.name, config, null).also(model::addFacet)
                 }
-            }.forEach { (blueprint, facet) ->
-                updateFacet(sdk, blueprint, facet)
+            }.mapNotNull { (blueprint, facet) ->
                 AndroidModel.set(facet, AospAndroidModel(project, blueprint))
+                if (cleanUpFacet(facet)) {
+                    facet
+                } else {
+                    null
+                }
             }
 
             model.commit()
-        }
-    }
 
-    override fun updateFacet(sdk: Sdk, blueprint: Blueprint, facet: AndroidFacet) {
-        facet.properties.PROJECT_TYPE =
-            if (blueprint is AndroidAppBlueprint) AndroidProjectTypes.PROJECT_TYPE_APP else AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-
-        val localRes = (blueprint as? BlueprintWithResources)?.resources?.firstOrNull() as? GlobItem
-        facet.properties.RES_FOLDER_RELATIVE_PATH = localRes?.toRelativeString()
-
-        val localAssets = (blueprint as? BlueprintWithAssets)?.assets?.firstOrNull() as? GlobItem
-        facet.properties.ASSETS_FOLDER_RELATIVE_PATH = localAssets?.toRelativeString()
-
-        val resources = mutableSetOf<VirtualFile>()
-        BlueprintHelper.collectBlueprintResources(blueprint, sdk).toCollection(resources)
-        BlueprintHelper.collectBlueprintDependencies(blueprint, sdk).flatMap {
-            BlueprintHelper.collectBlueprintResources(it, sdk)
-        }.toCollection(resources)
-
-        facet.properties.RES_FOLDERS_RELATIVE_PATH = resources.joinToString(
-            AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-        ) { it.url }
-
-        facet.properties.MANIFEST_FILE_RELATIVE_PATH = (blueprint as? BlueprintWithManifest)?.manifest?.let {
-            if (it.startsWith("/")) it else "/$it"
+            updatedFacets.forEach(facetManager::facetConfigurationChanged)
         }
     }
 
@@ -340,5 +318,31 @@ private class AospProjectHelperImpl : AospProjectHelper {
         resources.forEach {
             entry.addSourceFolder(it, sourceType)
         }
+    }
+
+    private fun cleanUpFacet(facet: AndroidFacet): Boolean {
+        var updated = false;
+
+        if (facet.properties.RES_FOLDER_RELATIVE_PATH != null) {
+            facet.properties.RES_FOLDER_RELATIVE_PATH = null
+            updated = true
+        }
+
+        if (facet.properties.ASSETS_FOLDER_RELATIVE_PATH != null) {
+            facet.properties.ASSETS_FOLDER_RELATIVE_PATH = null
+            updated = true
+        }
+
+        if (facet.properties.RES_FOLDERS_RELATIVE_PATH != null) {
+            facet.properties.RES_FOLDERS_RELATIVE_PATH = null
+            updated = true
+        }
+
+        if (facet.properties.MANIFEST_FILE_RELATIVE_PATH != null) {
+            facet.properties.MANIFEST_FILE_RELATIVE_PATH = null
+            updated = true
+        }
+
+        return updated;
     }
 }

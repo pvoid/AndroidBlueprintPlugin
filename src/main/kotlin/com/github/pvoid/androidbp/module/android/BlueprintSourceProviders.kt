@@ -20,35 +20,50 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
 class BlueprintSourceProviders(
-    projectPath: String?,
-    sdk: Sdk?,
-    blueprints: List<Blueprint>
+    private val projectPath: String?,
+    private val sdk: Sdk?,
+    private val blueprints: List<Blueprint>
 ) : SourceProviders {
-    private val mAllSourceProviders: List<NamedIdeaSourceProvider> = if (sdk != null && projectPath != null) {
-        blueprints.map { BlueprintSourceProvider(projectPath, sdk, it) }
-    } else {
-        emptyList()
+
+    init {
+        if (blueprints.isEmpty()) {
+            throw AssertionError("Empty blueprints list")
+        }
     }
 
-    override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider> =
-        emptyList() // NOTE: Can be useful
+    private val mAllSourceProviders: List<NamedIdeaSourceProvider>
+        get() = if (sdk != null && projectPath != null) {
+            blueprints.map { BlueprintSourceProvider(projectPath, sdk, it) }
+        } else {
+            emptyList()
+        }
 
-    override val androidTestSources: IdeaSourceProvider = EmptySourceProvider()
+    override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
+        get() = emptyList() // NOTE: Can be useful
 
-    override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
+    override val androidTestSources: IdeaSourceProvider
+        get() = EmptySourceProvider()
 
-    override val currentSourceProviders: List<NamedIdeaSourceProvider> = mAllSourceProviders
+    override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
+        get()= emptyList()
 
-    override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
+    override val currentSourceProviders: List<NamedIdeaSourceProvider>
+        get() = mAllSourceProviders
 
-    override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider> = mAllSourceProviders
+    override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
+        get() = emptyList()
 
-    override val mainIdeaSourceProvider: NamedIdeaSourceProvider =
-        mAllSourceProviders.firstOrNull() ?: EmptySourceProvider()
+    override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+        get() = mAllSourceProviders
 
-    override val sources: IdeaSourceProvider = mAllSourceProviders.firstOrNull() ?: EmptySourceProvider()
+    override val mainIdeaSourceProvider: NamedIdeaSourceProvider
+        get() = mAllSourceProviders.firstOrNull() ?: EmptySourceProvider()
 
-    override val unitTestSources: IdeaSourceProvider = EmptySourceProvider()
+    override val sources: IdeaSourceProvider
+        get() = mAllSourceProviders.firstOrNull() ?: EmptySourceProvider()
+
+    override val unitTestSources: IdeaSourceProvider
+        get() = EmptySourceProvider()
 }
 
 class BlueprintSourceProvider(projectPath: String, sdk: Sdk, blueprint: Blueprint) : NamedIdeaSourceProvider {

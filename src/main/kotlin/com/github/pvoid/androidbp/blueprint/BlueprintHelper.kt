@@ -190,7 +190,7 @@ class BlueprintHelperImpl : BlueprintHelper {
             sourcesSet.forEach { source ->
                 when (source) {
                     is GlobItem -> {
-                        if (source.isPattern() || source.isFolder() || source.fileExtension()?.toLowerCase() in LIBRARY_TYPES) {
+                        if (source.isPattern() || source.isFolder() || source.fileExtension()?.lowercase(Locale.ENGLISH) in LIBRARY_TYPES) {
                             sources.add(source.toFullPath(blueprintFile.parentFile))
                         }
                     }

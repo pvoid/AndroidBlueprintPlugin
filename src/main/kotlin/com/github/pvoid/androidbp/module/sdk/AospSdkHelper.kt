@@ -24,7 +24,6 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTable
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -231,8 +230,8 @@ class AospSdkHelperImpl: AospSdkHelper {
         }
     }
 
-    override fun isAospSourcePath(path: File): Boolean {
-        val repo = File(path, ".repo")
+    override fun isAospSourcePath(pathName: File): Boolean {
+        val repo = File(pathName, ".repo")
         return repo.exists() && repo.isDirectory
     }
 

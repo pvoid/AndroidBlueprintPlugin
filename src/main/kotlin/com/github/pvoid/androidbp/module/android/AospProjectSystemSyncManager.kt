@@ -14,7 +14,12 @@ import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.aospSdkData
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.facet.FacetManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.ui.AppUIUtil
@@ -31,10 +36,6 @@ class AospProjectSystemSyncManager(
     @Volatile
     private var mSyncRequired: Boolean = true
 
-    private val mPublisher = mProject.messageBus.syncPublisher(FacetManager.FACETS_TOPIC)
-
-    private val mExecutors = MoreExecutors.listeningDecorator(SYNC_EXECUTOR)
-
     private var mBlueprints: List<Blueprint> = emptyList()
 
     private var mWatchedFiles = listOf<String>()
@@ -49,15 +50,22 @@ class AospProjectSystemSyncManager(
     fun isFileWatched(url: String) = mWatchedFiles.contains(url)
 
     override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-        return mExecutors.submit<ProjectSystemSyncManager.SyncResult> {
-            try {
-                doSync()
-                ProjectSystemSyncManager.SyncResult.SUCCESS
-            } catch (e: Exception) {
-                LOG.error("Project sync failed", e)
-                ProjectSystemSyncManager.SyncResult.FAILURE
+        val future = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
+        val syncTask = object : Task.ConditionalModal(null, "Indexing blueprints", false, ALWAYS_BACKGROUND) {
+            override fun run(indicator: ProgressIndicator) {
+                future.set(
+                    try {
+                        doSync()
+                        ProjectSystemSyncManager.SyncResult.SUCCESS
+                    } catch (e: Exception) {
+                        LOG.error("Project sync failed", e)
+                        ProjectSystemSyncManager.SyncResult.FAILURE
+                    }
+                )
             }
         }
+        ProgressManager.getInstance().run(syncTask)
+        return future
     }
 
     override fun isSyncInProgress() = false
@@ -74,29 +82,29 @@ class AospProjectSystemSyncManager(
             BlueprintsTable.get(it)
         }?.filter(AospProjectHelper::shouldHaveFacet) ?: emptyList()
 
-        val facets = FacetManager.getInstance(mProject.allModules().first())
         val sdk = ProjectRootManager.getInstance(mProject).projectSdk
 
-        if (sdk != null) {
-            val libs = AospProjectHelper.createDependencies(mProject, sdk)
-            AospProjectHelper.addDependencies(mProject, libs)
+        if (sdk == null || mBlueprints.isEmpty()) {
+            LOG.error("doSync() skipped for ${mProject.name}")
 
-            libs.mapNotNull { it.name }
-                .mapNotNull { sdk.aospSdkData?.getBlueprintFile(it) }
-                .forEach {
-                    watchedFiles.add(it.url)
-                }
+            AppUIUtil.invokeLaterIfProjectAlive(mProject) {
+                mProject.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+                    .syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED_OUT_OF_DATE)
+            }
+            return
+        }
 
-            // Updating facets
-            mBlueprints.forEach { blueprint ->
-                val facet = facets.findFacet(AndroidFacet.ID, blueprint.name) ?: return@forEach
-                AospProjectHelper.updateFacet(sdk, blueprint, facet)
-                mPublisher.facetConfigurationChanged(facet)
+        val libs = AospProjectHelper.createDependencies(mProject, sdk)
+        AospProjectHelper.addDependencies(mProject, libs)
+
+        libs.mapNotNull { it.name }
+            .mapNotNull { sdk.aospSdkData?.getBlueprintFile(it) }
+            .forEach {
+                watchedFiles.add(it.url)
             }
 
-            // Adding aidls and sources to source roots
-            AospProjectHelper.updateSourceRoots(mProject, mBlueprints)
-        }
+        // Adding aidls and sources to source roots
+        AospProjectHelper.updateSourceRoots(mProject, mBlueprints)
 
         mSyncRequired = false
         AppUIUtil.invokeLaterIfProjectAlive(mProject) {
