@@ -21,7 +21,6 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.0'
-    implementation files("libs/java-cup-11b-runtime.jar")
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
 }
 
@@ -43,9 +42,7 @@ patchPluginXml {
     sinceBuild '213.5744.223'
     changeNotes """
       <ul>
-        <li>Fix freeze on sdk path change</li>
-        <li>Fix local custom views lookup in layout preview</li>
-        <li>Remove some deprecated and internal api usage</li>
+        <li>Use the same parser for editor and blueprints table</li>
       </ul>"""
 }
 

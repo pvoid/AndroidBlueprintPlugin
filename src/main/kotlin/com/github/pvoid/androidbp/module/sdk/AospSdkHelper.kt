@@ -46,7 +46,7 @@ interface AospSdkHelper {
     companion object : AospSdkHelper by AospSdkHelperImpl()
 }
 
-class AospSdkHelperImpl: AospSdkHelper {
+class AospSdkHelperImpl : AospSdkHelper {
 
     override fun tryToCreateSdk(pathName: String): Sdk? {
         var path = File(pathName)
@@ -60,7 +60,7 @@ class AospSdkHelperImpl: AospSdkHelper {
 
         if (AospSdkType.INSTANCE.isValidSdkHome(path.absolutePath)) {
             return VirtualFileManager.getInstance().findFileByUrl(path.toFileSystemUrl())?.let {
-                SdkConfigurationUtil.setupSdk(emptyArray(), it, AospSdkType.INSTANCE, true,null, null)
+                SdkConfigurationUtil.setupSdk(emptyArray(), it, AospSdkType.INSTANCE, true, null, null)
             }?.also { sdk ->
                 WriteAction.runAndWait<Throwable> {
                     ProjectJdkTable.getInstance().addJdk(sdk)
@@ -117,7 +117,7 @@ class AospSdkHelperImpl: AospSdkHelper {
                 val blueprintFile = sdkData.projects[libraryName]?.let { File(it) } ?: continue
                 val blueprint = LocalFileSystem.getInstance().findFileByIoFile(blueprintFile)?.let {
                     BlueprintsTable.get(it)
-                }?.firstOrNull{ it.name == libraryName }
+                }?.firstOrNull { it.name == libraryName }
 
                 if (blueprint != null) {
                     var lib = libraryTable.libraries.firstOrNull { it.name == libraryName }
@@ -163,11 +163,9 @@ class AospSdkHelperImpl: AospSdkHelper {
 
     override fun updateAdditionalData(sdk: Sdk, indicator: ProgressIndicator) {
         val sdkModificator = sdk.sdkModificator
-        ReadAction.run<Throwable> {
-            AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
-            WriteAction.runAndWait<Throwable> {
-                sdkModificator.commitChanges()
-            }
+        AospSdkHelper.setUpAdditionalData(sdk, sdkModificator, indicator)
+        WriteAction.runAndWait<Throwable> {
+            sdkModificator.commitChanges()
         }
     }
 
@@ -176,11 +174,7 @@ class AospSdkHelperImpl: AospSdkHelper {
             ?.filter { (_, path) -> path != blueprintFile.path }
             ?.toMutableMap() ?: return
 
-        val blueprints = FileReader(blueprintFile.path).use {
-            val factory = BlueprintCupSymbolFactory(File(blueprintFile.path).parentFile)
-            BlueprintParser(BlueprintLexer(it, factory)).parse()
-            factory.blueprints
-        }.map {
+        BlueprintsTable.parse(blueprintFile).map {
             it.name to blueprintFile.path
         }.toMap(projects)
 
@@ -213,11 +207,7 @@ class AospSdkHelperImpl: AospSdkHelper {
             indicator.fraction += step
             LocalFileSystem.getInstance().findFileByIoFile(file)?.let { virtualFile ->
                 try {
-                    FileReader(virtualFile.path).use {
-                        val factory = BlueprintCupSymbolFactory(file.parentFile)
-                        BlueprintParser(BlueprintLexer(it, factory)).parse()
-                        factory.blueprints
-                    }
+                    BlueprintsTable.parse(virtualFile)
                 } catch (e: RuntimeException) {
                     LOG.error("Error parsing: ${virtualFile.url}. ${e.message}", e)
                     emptyList()
@@ -259,7 +249,13 @@ class AospSdkHelperImpl: AospSdkHelper {
         }
     }
 
-    private fun configureLibrary(library: Library.ModifiableModel, sdkPath: String, sdk: Sdk, blueprintFile: File, blueprint: Blueprint) {
+    private fun configureLibrary(
+        library: Library.ModifiableModel,
+        sdkPath: String,
+        sdk: Sdk,
+        blueprintFile: File,
+        blueprint: Blueprint
+    ) {
         val filesManager = VirtualFileManager.getInstance()
         BlueprintHelper.collectBlueprintSources(blueprint, sdk, true).map(File::toFileSystemUrl).forEach { url ->
             filesManager.findFileByUrl(url)?.let {

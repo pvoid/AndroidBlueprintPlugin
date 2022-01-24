@@ -21,7 +21,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 
 
@@ -36,7 +35,7 @@ class BlueprintStartupActivity : StartupActivity {
             val projectSdk = manager.projectSdk
 
             if (projectSdk != null && projectSdk.sdkType.name == AOSP_SDK_TYPE_NAME) {
-                ProgressManager.getInstance().run( object : Task.Backgroundable(project, "Checking dependencies", false, ALWAYS_BACKGROUND) {
+                object : Task.Backgroundable(project, "Checking dependencies", false, ALWAYS_BACKGROUND) {
                     override fun run(indicator: ProgressIndicator) {
                         if (projectSdk.aospSdkData?.isOld() == true) {
                             AospSdkHelper.updateAdditionalData(projectSdk, indicator)
@@ -50,7 +49,9 @@ class BlueprintStartupActivity : StartupActivity {
                         AospProjectHelper.addFacets(project, projectSdk)
                         AospProjectHelper.fixLayoutLibrary(project, projectSdk)
                     }
-                } )
+
+                    override fun shouldStartInBackground(): Boolean = true
+                }.queue()
             } else {
                 val notification =
                     NotificationGroupManager.getInstance().getNotificationGroup("Android Module Importing")
@@ -62,8 +63,7 @@ class BlueprintStartupActivity : StartupActivity {
                 notification.addAction(object : NotificationAction("Configure...") {
                     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
                         notification.hideBalloon()
-
-                        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Configuring project", false, ALWAYS_BACKGROUND) {
+                        object : Task.ConditionalModal(project, "Configuring project", false, ALWAYS_BACKGROUND) {
                             override fun run(indicator: ProgressIndicator) {
                                 indicator.text = "Assigning AOSP SDK"
                                 AospProjectHelper.checkAndAssignSdk(project, indicator, true)?.let { sdk ->
@@ -77,8 +77,7 @@ class BlueprintStartupActivity : StartupActivity {
                                     AospProjectHelper.fixLayoutLibrary(project, sdk)
                                 }
                             }
-                        })
-
+                        }.queue()
                     }
                 })
                 notification.notify(project)

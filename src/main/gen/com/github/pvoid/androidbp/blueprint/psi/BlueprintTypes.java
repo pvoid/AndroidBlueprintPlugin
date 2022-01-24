@@ -16,6 +16,7 @@ import com.github.pvoid.androidbp.blueprint.impl.*;
 
 public interface BlueprintTypes {
 
+  IElementType DUMNMY = new BlueprintElementType("DUMMY");
   IElementType ARRAY = new BlueprintElementType("ARRAY");
   IElementType ARRAY_ELEMENT = new BlueprintElementType("ARRAY_ELEMENT");
   IElementType ARRAY_EXPR = new BlueprintElementType("ARRAY_EXPR");

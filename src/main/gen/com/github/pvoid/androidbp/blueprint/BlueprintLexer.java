@@ -12,8 +12,8 @@ import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 
-import static com.github.pvoid.androidbp.blueprint.model.BlueprintParserSym.*;
 import com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory;
+import static com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory.Token.*;
 import com.github.pvoid.androidbp.blueprint.model.BlueprintIElementSymbolFactory;
 
 
@@ -1668,7 +1668,7 @@ public class BlueprintLexer implements FlexLexer {
       return factory.skipSpaces();
   }
 
-  private <T> T create(int type) {
+  private <T> T create(BlueprintIElementSymbolFactory.Token type) {
       return factory.<T>create(type, yytext());
   }
 
@@ -1921,7 +1921,7 @@ public class BlueprintLexer implements FlexLexer {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { return create(error);
+            { return create(ERROR);
             } 
             // fall through
           case 34: break;
@@ -1972,7 +1972,7 @@ public class BlueprintLexer implements FlexLexer {
                                      return create(VARIABLE_NAME);
                                  }
 
-                                 return create(error);
+                                 return create(ERROR);
             } 
             // fall through
           case 42: break;
@@ -1988,7 +1988,7 @@ public class BlueprintLexer implements FlexLexer {
           case 44: break;
           case 12: 
             { if (mValueExpected) {
-                                      return create(error);
+                                      return create(ERROR);
                                   }
                                   mValueExpected = true;
                                   return create(PLUS);
@@ -2005,7 +2005,7 @@ public class BlueprintLexer implements FlexLexer {
                                          yypopstate();
                                          return create(OBJECT_END);
                                  }
-                                 return create(error);
+                                 return create(ERROR);
             } 
             // fall through
           case 46: break;
@@ -2014,7 +2014,7 @@ public class BlueprintLexer implements FlexLexer {
                                     yypopstate();
                                     return create(ELEMENT_SEPARATOR);
                                  } else {
-                                    return create(error);
+                                    return create(ERROR);
                                  }
             } 
             // fall through
@@ -2109,7 +2109,7 @@ public class BlueprintLexer implements FlexLexer {
                                     return create(BLUEPRINT_TYPE);
                                  }
 
-                                 return create(error);
+                                 return create(ERROR);
             } 
             // fall through
           case 63: break;

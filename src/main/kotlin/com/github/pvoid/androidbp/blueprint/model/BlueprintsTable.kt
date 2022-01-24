@@ -6,19 +6,29 @@
 
 package com.github.pvoid.androidbp.blueprint.model
 
+import com.android.tools.idea.util.toIoFile
+import com.github.pvoid.androidbp.LOG
+import com.github.pvoid.androidbp.blueprint.BlueprintLanguage
+import com.github.pvoid.androidbp.blueprint.BlueprintLexerAdapter
+import com.github.pvoid.androidbp.blueprint.parser.BlueprintParser
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes
 import com.github.pvoid.androidbp.module.sdk.AospSdkHelper
 import com.github.pvoid.androidbp.module.sdk.AospSdkType
+import com.intellij.lang.LanguageParserDefinitions
+import com.intellij.lang.PsiBuilderFactory
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.impl.file.impl.FileManager
+import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.util.messages.Topic
-import org.gradle.tooling.model.ProjectModel
 import java.io.File
-import java.io.FileReader
+import java.io.IOException
 
 interface BlueprintChangeNotifier {
 
@@ -27,7 +37,7 @@ interface BlueprintChangeNotifier {
 
     companion object {
         val CHANGE_TOPIC =
-            Topic.create<BlueprintChangeNotifier>("Blueprint file changed", BlueprintChangeNotifier::class.java)
+            Topic.create("Blueprint file changed", BlueprintChangeNotifier::class.java)
     }
 }
 
@@ -35,6 +45,7 @@ interface BlueprintsTable {
 
     fun get(blueprintFile: VirtualFile): List<Blueprint>
     fun update(project: Project, blueprintFiles: List<VirtualFile>)
+    fun parse(file: VirtualFile): List<Blueprint>
 
     companion object : BlueprintsTable by BlueprintsTableImpl() {
     }
@@ -91,17 +102,25 @@ class BlueprintsTableImpl : BlueprintsTable {
         }.queue()
     }
 
-    private fun parse(blueprintFile: VirtualFile): List<Blueprint> {
-        val file = File(blueprintFile.path)
-        return try {
-            FileReader(file).use {
-                val factory = BlueprintCupSymbolFactory(file.parentFile)
-                BlueprintParser(BlueprintLexer(it, factory)).parse()
-                factory.blueprints
+    override fun parse(file: VirtualFile): List<Blueprint> {
+        var result: List<Blueprint>? = null
+        ApplicationManager.getApplication().runReadAction {
+            val parser = BlueprintParser()
+            LOG.info("Processing file: $file")
+            try {
+                val text = file.toIoFile().readText()
+                val builder = PsiBuilderFactory.getInstance().createBuilder(
+                    LanguageParserDefinitions.INSTANCE.forLanguage(BlueprintLanguage.INSTANCE),
+                    BlueprintLexerAdapter(),
+                    text
+                )
+                val element = FileElement(BlueprintTypes.DUMNMY, text)
+                parser.parse(element.elementType, builder) as? FileElement
+                result = builder.treeBuilt.toBlueprints(File(file.parent.path))
+            } catch (e: IOException) {
+                LOG.error(e)
             }
-        } catch (e: RuntimeException) {
-// TODO:           LOG.error("Blueprint parsing error", e)
-            emptyList()
         }
+        return result ?: emptyList()
     }
 }

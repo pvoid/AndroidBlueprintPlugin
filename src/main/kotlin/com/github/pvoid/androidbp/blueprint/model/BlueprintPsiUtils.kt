@@ -12,13 +12,14 @@ import com.github.pvoid.androidbp.blueprint.completion.BlueprintObjectField
 import com.github.pvoid.androidbp.blueprint.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.daemon.common.trimQuotes
 
 object BlueprintPsiUtils {
     fun getValue(element: BlueprintStringExpr): String =
-        element.children.filter {
+        generateSequence(element.firstChild) { it.nextSibling }.filter {
             it.node.elementType == BlueprintTypes.STRING
         }.joinToString {
-            it.text
+            it.text.trimQuotes()
         }
 
     fun getBlueprintName(element: BlueprintBlueprint): String? {

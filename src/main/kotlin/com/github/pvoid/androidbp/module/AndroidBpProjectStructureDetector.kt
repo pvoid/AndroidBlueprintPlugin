@@ -15,8 +15,8 @@ import com.intellij.ide.util.projectWizard.ProjectWizardStepFactory
 import com.intellij.ide.util.projectWizard.importSources.*
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
-import java.io.FileReader
 import javax.swing.Icon
 
 class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
@@ -27,16 +27,11 @@ class AndroidBpProjectStructureDetector : ProjectStructureDetector() {
         base: File,
         result: MutableList<DetectedProjectRoot>
     ): DirectoryProcessingResult {
-        val blueprintFile = children.asSequence().firstOrNull { it.name == "Android.bp" }
+        val blueprintFile = children.asSequence().firstOrNull { it.name == "Android.bp" }?.toVirtualFile()
         if (blueprintFile != null) {
-            val blueprints = FileReader(blueprintFile).use {
-                val factory = BlueprintCupSymbolFactory(blueprintFile.parentFile)
-                BlueprintParser(BlueprintLexer(it, factory)).parse()
-                factory.blueprints
-            }
-
-            if (!blueprints.isNullOrEmpty()) {
-                result.add(AndroidBpDetectedSourceRoot(dir, blueprints))
+            val blueprints = BlueprintsTable.parse(blueprintFile)
+            if (!blueprints.isEmpty()) {
+                result.add(AndroidBpDetectedSourceRoot(dir, emptyList()))
                 return DirectoryProcessingResult.SKIP_CHILDREN
             }
         }

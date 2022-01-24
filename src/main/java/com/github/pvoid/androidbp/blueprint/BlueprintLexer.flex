@@ -4,8 +4,8 @@ import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 
-import static com.github.pvoid.androidbp.blueprint.model.BlueprintParserSym.*;
 import com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory;
+import static com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory.Token.*;
 import com.github.pvoid.androidbp.blueprint.model.BlueprintIElementSymbolFactory;
 
 %%
@@ -48,7 +48,7 @@ import com.github.pvoid.androidbp.blueprint.model.BlueprintIElementSymbolFactory
       return factory.skipSpaces();
   }
 
-  private <T> T create(int type) {
+  private <T> T create(BlueprintIElementSymbolFactory.Token type) {
       return factory.<T>create(type, yytext());
   }
 
@@ -61,9 +61,6 @@ import com.github.pvoid.androidbp.blueprint.model.BlueprintIElementSymbolFactory
 %function advance
 %type IElementType
 %unicode
-//%cup
-//%line
-//%column
 
 %state YYCOMMENT
 
@@ -251,7 +248,7 @@ NUMBER=[0-9]
     {END_OF_LINE_COMMENT}      { if (!skipSpaces()) return create(COMMENT); }
     ({CRLF}|{WHITE_SPACE})     { if (!skipSpaces()) return create(WHITE_SPACE); }
     \{                         { yybegin(YYBLUEPRINT); return create(OBJECT_START); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYVARIABLE_START> {
@@ -260,7 +257,7 @@ NUMBER=[0-9]
     ({CRLF}|{WHITE_SPACE})     { if (!skipSpaces()) return create(WHITE_SPACE); }
     \+\s*\=                    { yypushstate(YYVALUE); mValueExpected = true; return create(PLUS_EQUALS); }
     "="                        { yypushstate(YYVALUE); mValueExpected = true; return create(EQUALS); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYBLUEPRINT> {
@@ -269,7 +266,7 @@ NUMBER=[0-9]
     ({CRLF}|{WHITE_SPACE})     { if (!skipSpaces()) return create(WHITE_SPACE); }
     {VARIABLE_NAME}+           { yypushstate(YYBLUEPRINT_VALUE_START); return create(FIELD_NAME); }
     \}                         { yybegin(YYINITIAL); return create(OBJECT_END); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYBLUEPRINT_VALUE_START> {
@@ -277,7 +274,7 @@ NUMBER=[0-9]
     {END_OF_LINE_COMMENT}      { if (!skipSpaces()) return create(COMMENT); }
     ({CRLF}|{WHITE_SPACE})     { if (!skipSpaces()) return create(WHITE_SPACE); }
     ":"                        { yybegin(YYVALUE); mValueExpected = true;  return create(EQUALS); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYVALUE> {
@@ -289,12 +286,12 @@ NUMBER=[0-9]
                                     yypopstate();
                                     return create(ELEMENT_SEPARATOR);
                                  } else {
-                                    return create(error);
+                                    return create(ERROR);
                                  }
                                }
     "+"                        {
                                   if (mValueExpected) {
-                                      return create(error);
+                                      return create(ERROR);
                                   }
                                   mValueExpected = true;
                                   return create(PLUS);
@@ -309,7 +306,7 @@ NUMBER=[0-9]
                                          yypopstate();
                                          return create(OBJECT_END);
                                  }
-                                 return create(error);
+                                 return create(ERROR);
                                }
     \[                         { yypushstate(YYARRAY); mValueExpected = false; return create(ARRAY_START); }
     \{                         { yypushstate(YYOBJECT); mValueExpected = false; return create(OBJECT_START); }
@@ -329,7 +326,7 @@ NUMBER=[0-9]
                                     return create(BLUEPRINT_TYPE);
                                  }
 
-                                 return create(error);
+                                 return create(ERROR);
                                }
     {VARIABLE_NAME}            {
                                  if (mValueExpected) {
@@ -343,9 +340,9 @@ NUMBER=[0-9]
                                      return create(VARIABLE_NAME);
                                  }
 
-                                 return create(error);
+                                 return create(ERROR);
                                }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYARRAY> {
@@ -361,7 +358,7 @@ NUMBER=[0-9]
     {DOUBLE_QUOTE_STRING}      { return create(STRING); }
     {SINGLE_QUOTE_STRING}      { return create(STRING); }
     {VARIABLE_NAME}            { return create(VARIABLE_VALUE); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYOBJECT> {
@@ -371,7 +368,7 @@ NUMBER=[0-9]
     {VARIABLE_NAME}+           { yypushstate(YYOBJECT_VALUE_START); return create(FIELD_NAME); }
     \}                         { yypopstate(); return create(OBJECT_END); }
     ,                          { return create(ELEMENT_SEPARATOR); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 <YYOBJECT_VALUE_START> {
@@ -379,8 +376,8 @@ NUMBER=[0-9]
     {END_OF_LINE_COMMENT}      { if (!skipSpaces()) return create(COMMENT); }
     ({CRLF}|{WHITE_SPACE})     { if (!skipSpaces()) return create(WHITE_SPACE); }
     ":"                        { yybegin(YYVALUE); mValueExpected = true; return create(EQUALS); }
-    [^]                        { return create(error); }
+    [^]                        { return create(ERROR); }
 }
 
 
-[^] { return create(error); }
+[^] { return create(ERROR); }

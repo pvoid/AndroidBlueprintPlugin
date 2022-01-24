@@ -13,18 +13,13 @@ import com.github.pvoid.androidbp.blueprint.model.*
 import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.aospSdkData
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.facet.FacetManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.ui.AppUIUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.util.concurrent.Executors
 
 private val SYNC_EXECUTOR = Executors.newSingleThreadExecutor()
