@@ -150,6 +150,12 @@ class JavaSdkLibraryBlueprint(
     override fun getArtifacts(basePath: File): List<File> = listOf(File(basePath, "android_common/turbine-combined/$name.jar"))
 }
 
+class JavaGenRuleBlueprint(
+    override val name: String,
+    override val sources: List<SourceSet>,
+    override val dependencies: List<String>
+) : Blueprint, BlueprintWithDependencies, BlueprintWithSources
+
 class SyspropLibraryBlueprint(
     override val name: String,
     override val sources: List<SourceSet>,

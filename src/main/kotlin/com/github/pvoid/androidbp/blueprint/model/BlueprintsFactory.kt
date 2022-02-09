@@ -22,6 +22,7 @@ class BlueprintsFactory {
         "sysprop_library" -> createSyspropLibrary(values)
         "aidl_interface" -> createAidlInterface(values)
         "hidl_interface" -> createHidlInterface(values)
+        "java_genrule" -> createJavaGenRule(values)
         else -> createUnsupportedBlueprint(values)
     }
 
@@ -208,6 +209,21 @@ class BlueprintsFactory {
 
         val genJava = values["gen_java"] as? Boolean == true
         return HidlInterfaceLibrary(name, parts[0], parts[1], sources, genJava)
+    }
+
+    private fun createJavaGenRule(values: Map<String, Any>): Blueprint? {
+        val name = values["name"] as? String ?: return null
+        val srcs = mutableListOf<SourceSet>()
+        val dependencies = mutableListOf<String>()
+
+        (values["srcs"] as? List<*>)?.filterIsInstance<String>()?.forEach { src ->
+            if (src.startsWith(":")) {
+                dependencies.add(src.substring(1))
+            } else {
+                srcs.add(SourceSet(src))
+            }
+        }
+        return JavaGenRuleBlueprint(name, srcs, dependencies)
     }
 
     private fun createUnsupportedBlueprint(values: Map<String, Any>): Blueprint? {
