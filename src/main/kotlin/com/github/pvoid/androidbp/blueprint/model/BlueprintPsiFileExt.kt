@@ -21,20 +21,20 @@ fun ASTNode.toBlueprints(path: File): List<Blueprint> {
 
     children().forEach { node ->
         when (node.elementType) {
-            BlueprintTypes.BLUEPRINT -> createBlueprint(node.psi as BlueprintBlueprint, path, factory)?.let(result::add)
+            BlueprintTypes.BLUEPRINT -> createBlueprint(node.psi as BlueprintBlueprint, path, variables, factory)?.let(result::add)
             BlueprintTypes.VARIABLE -> createVariable(node.psi as BlueprintVariable, variables)
         }
     }
     return result
 }
 
-private fun createBlueprint(element: BlueprintBlueprint, path: File, factory: BlueprintsFactory): Blueprint? {
+private fun createBlueprint(element: BlueprintBlueprint, path: File, variables: Map<String, Any>, factory: BlueprintsFactory): Blueprint? {
     val nameNode = element.children.firstOrNull {
         it.elementType == BlueprintTypes.BLUEPRINT_TYPE
     }?.text ?: return null
 
     val members = element.members?.let {
-        createObject(it)
+        createObject(it, variables)
     } ?: emptyMap()
 
     return factory.create(nameNode, members, path)
@@ -59,7 +59,7 @@ private fun createVariable(node: BlueprintVariable, table: MutableMap<String, An
 
     while (true) {
         if (current.elementType == BlueprintTypes.VALUE) {
-            value = nodeToValue(current.firstChild.nextValueNode())
+            value = nodeToValue(current.firstChild.nextValueNode(), table)
             break;
         }
         current = current.nextSibling ?: return
@@ -72,37 +72,39 @@ private fun createVariable(node: BlueprintVariable, table: MutableMap<String, An
     }
 }
 
-private fun createObject(members: BlueprintMembers): Map<String, Any> {
+private fun createObject(members: BlueprintMembers, variables: Map<String, Any>): Map<String, Any> {
     return members.pairList.fold(mutableMapOf()) { map, pair ->
         val value = pair.value.firstChild.nextValueNode()
-        map[pair.fieldName.text] = nodeToValue(value)
+        map[pair.fieldName.text] = nodeToValue(value, variables)
         map
     }
 }
 
-private fun fillArray(array: MutableList<Any>, elements: BlueprintElements) {
+private fun fillArray(array: MutableList<Any>, elements: BlueprintElements, variables: Map<String, Any>) {
     elements.arrayElementList.map { item ->
-        nodeToValue(item.firstChild.nextValueNode())
+        nodeToValue(item.firstChild.nextValueNode(), variables)
     }.fold(array) { arr, item ->
         arr.add(item)
         arr
     }
 }
 
-private fun nodeToValue(value: PsiElement?): Any = when (value?.elementType) {
+private fun nodeToValue(value: PsiElement?, variables: Map<String, Any>): Any = when (value?.elementType) {
     BlueprintTypes.NUMBER -> value?.text?.toIntOrNull()
     BlueprintTypes.STRING_EXPR -> (value as BlueprintStringExpr).value
     BlueprintTypes.STRING -> value?.text?.trimQuotes()
     BlueprintTypes.BOOL -> value?.text?.trim() == "true"
-    BlueprintTypes.OBJECT -> (value as? BlueprintObject)?.members?.let(::createObject)
+    BlueprintTypes.OBJECT -> (value as? BlueprintObject)?.members?.let { createObject(it, variables) }
     BlueprintTypes.ARRAY_EXPR -> {
         (value as? BlueprintArrayExpr)?.arrayList?.fold(mutableListOf<Any>()) { acc, item ->
             item.elements?.let {
-                fillArray(acc, it)
+                fillArray(acc, it, variables)
             }
             acc
         }
     }
+    BlueprintTypes.LINK -> value?.text?.trimQuotes()
+    BlueprintTypes.VARIABLE_REF_EXPR -> value?.text?.let { variables[it] }
     else -> null
 } ?: Any()
 
@@ -116,6 +118,7 @@ private fun PsiElement.nextValueNode(): PsiElement? {
             BlueprintTypes.OBJECT -> return element
             BlueprintTypes.BOOL -> return element
             BlueprintTypes.NUMBER -> return element
+            BlueprintTypes.LINK -> return element
             BlueprintTypes.VARIABLE_REF_EXPR -> return element
             else -> element = element?.nextSibling
         }
