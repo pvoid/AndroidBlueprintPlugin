@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.util.containers.Stack
 import java.io.File
 import java.io.FileReader
 import java.util.*
@@ -154,8 +155,8 @@ class AospSdkHelperImpl : AospSdkHelper {
 
     private fun hackLibraryDependencies(name: String, configured: Set<String>, libraries: MutableList<String>) {
         when (name) {
-            // services.core has framework and libcore classes injected
-            "services.core.priorityboosted" -> listOf("framework", "libcore")
+            // services.core has framework classes injected
+            "services.core.priorityboosted" -> listOf("framework")
             else -> emptyList()
         }.filterNot(configured::contains).forEach(libraries::add)
     }
@@ -214,27 +215,34 @@ class AospSdkHelperImpl : AospSdkHelper {
         val platformVersion = fetchPlatformVersion(root)
 
         indicator.text = "Collecting blueprints..."
-        val blueprints = AospSdkBlueprints.findBlueprints(root)
+        val blueprints = Stack(AospSdkBlueprints.findBlueprints(root))
+        val projects = mutableMapOf<String, String>()
 
         indicator.text = "Parsing blueprints..."
         indicator.isIndeterminate = false
         indicator.fraction = 0.0
         val step = 100.0 / blueprints.size.toFloat()
-        modificator.sdkAdditionalData = blueprints.flatMap { file ->
-            indicator.fraction += step
+
+        while (!blueprints.isEmpty()) {
+            val file = blueprints.pop()
+            val extra = mutableListOf<File>()
             LocalFileSystem.getInstance().findFileByIoFile(file)?.let { virtualFile ->
                 try {
-                    BlueprintsTable.parse(virtualFile)
+                    BlueprintsTable.parse(virtualFile, extra)
                 } catch (e: RuntimeException) {
                     LOG.error("Error parsing: ${virtualFile.url}. ${e.message}", e)
                     emptyList()
                 }
-            }?.map {
-                it.name to file.absolutePath
-            } ?: emptyList()
-        }.toMap().let {
-            AospSdkData(sdk, androidSdk, it, platformVersion ?: 0)
+            }?.forEach {
+                projects[it.name] = file.absolutePath
+            }
+            extra.forEach(blueprints::push)
+
+            indicator.fraction += step
+
         }
+
+        modificator.sdkAdditionalData = AospSdkData(sdk, androidSdk, projects, platformVersion ?: 0)
     }
 
     override fun isAospSourcePath(pathName: File): Boolean {

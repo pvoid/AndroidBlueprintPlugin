@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.daemon.common.trimQuotes
 import org.jetbrains.kotlin.psi.psiUtil.children
 import java.io.File
 
-fun ASTNode.toBlueprints(path: File): List<Blueprint> {
+fun ASTNode.toBlueprints(path: File, extra: MutableList<File>?): List<Blueprint> {
     val result = mutableListOf<Blueprint>()
     val factory = BlueprintsFactory()
     val variables = mutableMapOf<String, Any>()
@@ -25,6 +25,11 @@ fun ASTNode.toBlueprints(path: File): List<Blueprint> {
             BlueprintTypes.VARIABLE -> createVariable(node.psi as BlueprintVariable, variables)
         }
     }
+
+    if (extra != null) {
+        (variables["build"] as? List<*>)?.filterIsInstance<String>()?.map { File(path, it) }?.forEach(extra::add)
+    }
+
     return result
 }
 

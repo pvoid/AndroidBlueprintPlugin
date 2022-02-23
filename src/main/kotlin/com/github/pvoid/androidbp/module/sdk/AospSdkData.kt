@@ -26,7 +26,7 @@ private const val ATTRIBUTE_ANDROID_SDK_TARGET = "androidSdkTarget"
 private const val ATTRIBUTE_PLATFORM_VERSION = "platformVersion"
 private const val ATTRIBUTE_DATA_VERSION = "dataVersion"
 
-private const val CURRENT_DATA_VERSION = 2
+private const val CURRENT_DATA_VERSION = 3
 
 class AospSdkData(
     sdk: Sdk,

@@ -45,7 +45,7 @@ interface BlueprintsTable {
 
     fun get(blueprintFile: VirtualFile): List<Blueprint>
     fun update(project: Project, blueprintFiles: List<VirtualFile>)
-    fun parse(file: VirtualFile): List<Blueprint>
+    fun parse(file: VirtualFile, extra: MutableList<File>? = null): List<Blueprint>
 
     companion object : BlueprintsTable by BlueprintsTableImpl() {
     }
@@ -102,7 +102,7 @@ class BlueprintsTableImpl : BlueprintsTable {
         }.queue()
     }
 
-    override fun parse(file: VirtualFile): List<Blueprint> {
+    override fun parse(file: VirtualFile, extra: MutableList<File>?): List<Blueprint> {
         var result: List<Blueprint>? = null
         ApplicationManager.getApplication().runReadAction {
             val parser = BlueprintParser()
@@ -116,7 +116,7 @@ class BlueprintsTableImpl : BlueprintsTable {
                 )
                 val element = FileElement(BlueprintTypes.DUMNMY, text)
                 parser.parse(element.elementType, builder) as? FileElement
-                result = builder.treeBuilt.toBlueprints(File(file.parent.path))
+                result = builder.treeBuilt.toBlueprints(File(file.parent.path), extra)
             } catch (e: IOException) {
                 LOG.error(e)
             }
