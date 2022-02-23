@@ -85,7 +85,13 @@ class AndroidLibraryBlueprint(
     override val manifest: String,
     override val defaults: List<String>
 ) : Blueprint, BlueprintWithSources, BlueprintWithDependencies, BlueprintWithDefaults, BlueprintWithResources, BlueprintWithAssets, BlueprintWithManifest, BlueprintWithArtifacts {
-    override fun getArtifacts(basePath: File): List<File> = listOf(File(basePath, "android_common/combined/$name.jar"))
+    override fun getArtifacts(basePath: File): List<File> {
+        var file = File(basePath, "android_common/turbine-combined/$name.jar")
+        if (!file.exists()) {
+            file = File(basePath, "android_common/combined/$name.jar")
+        }
+        return listOf(file)
+    }
     override fun getR(basePath: File): File = File(basePath, "android_common/R.txt")
     override fun getResApk(basePath: File): File = File(basePath, "android_common/package-res.apk")
 }

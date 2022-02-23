@@ -13,7 +13,7 @@ apply plugin: "kotlin"
 apply plugin: "org.jetbrains.intellij"
 
 group 'com.github.pvoid.androidbp'
-version '1.0.0-RC1'
+version '1.0.0-RC2'
 
 repositories {
     mavenCentral()
@@ -44,6 +44,9 @@ patchPluginXml {
     changeNotes """
       <ul>
         <li>Use the same parser for editor and blueprints table</li>
+        <li>Add java_genrule bluepriont support</li>
+        <li>Add imported blueprints support and inject libcore to all java projects</li>
+        <li>fix artifact paths for android library without resources<li>
       </ul>"""
 }
 
