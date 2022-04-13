@@ -275,7 +275,7 @@ private class AospProjectHelperImpl : AospProjectHelper {
     }
 
     override fun fixLayoutLibrary(project: Project, sdk: Sdk) {
-        val data = (sdk.sdkAdditionalData as AospSdkData).androidSdkData
+        val data = (sdk.sdkAdditionalData as AospSdkData?)?.androidSdkData
         val loaded = data?.targets?.any { target ->
             try {
                 val compatTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)

@@ -15,7 +15,7 @@ class BlueprintsFactory {
         "android_library_import" -> createAndroidLibraryImport(values)
         "java_defaults" -> createJavaDefault(values)
         "filegroup" -> createFileGroup(values)
-        "java_library", "java_library_host", "java_library_static" -> createJavaLibrary(values)
+        "java_library", "java_library_host", "java_library_static", "java_test_host" -> createJavaLibrary(values)
         "java_binary", "java_binary_host" -> createJavaBinary(values)
         "java_import" -> createJavaImport(values, path)
         "java_sdk_library" -> createJavaSdkLibrary(values)
@@ -38,7 +38,7 @@ class BlueprintsFactory {
             pattern.mapNotNull { it as? String }.map { SourceSet(it) }
         } ?: emptyList()
 
-        val libs = mutableListOf("framework", "framework-res", "core-all")
+        val libs = mutableListOf("framework", "framework-res", "core-all", "kotlin-stdlib")
         (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
             libs.add(it)
         }
@@ -64,7 +64,7 @@ class BlueprintsFactory {
             pattern.mapNotNull { it as? String }.map { SourceSet(it) }
         } ?: emptyList()
 
-        val libs = mutableListOf("framework", "framework-res", "core-all")
+        val libs = mutableListOf("framework", "framework-res", "core-all", "kotlin-stdlib")
         (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
             libs.add(it)
         }
@@ -79,7 +79,7 @@ class BlueprintsFactory {
 
     private fun createAndroidLibraryImport(values: Map<String, Any>): Blueprint? {
         val name = values["name"] as? String ?: return null
-        val libs = mutableListOf("framework", "core-all")
+        val libs = mutableListOf("framework", "core-all", "kotlin-stdlib")
         (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
             libs.add(it)
         }
@@ -110,7 +110,7 @@ class BlueprintsFactory {
         val sources = (values["srcs"] as? List<*>)?.let { pattern ->
             pattern.mapNotNull { it as? String }.map { SourceSet(it) }
         } ?: emptyList()
-        val libs = mutableListOf<String>()
+        val libs = mutableListOf<String>("core-all", "kotlin-stdlib")
         (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
             libs.add(it)
         }
@@ -126,7 +126,7 @@ class BlueprintsFactory {
         val sources = (values["srcs"] as? List<*>)?.let { pattern ->
             pattern.mapNotNull { it as? String }.map { SourceSet(it) }
         } ?: emptyList()
-        val libs = mutableListOf<String>("core-all")
+        val libs = mutableListOf<String>("core-all", "kotlin-stdlib")
         (values["static_libs"] as? List<*>)?.mapNotNull { it as? String }?.forEach {
             libs.add(it)
         }
