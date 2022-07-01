@@ -11,9 +11,9 @@ import org.xml.sax.Attributes
 import org.xml.sax.SAXParseException
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
-import javax.xml.parsers.SAXParser
 import javax.xml.parsers.SAXParserFactory
 
 class ManifestInfo(
@@ -21,10 +21,10 @@ class ManifestInfo(
 ) {
 
     companion object {
-        fun read(inp: InputStream): ManifestInfo {
+        fun read(inp: InputStream, sdkRootPath: String?): ManifestInfo {
             val factory = SAXParserFactory.newInstance()
             val saxParser = factory.newSAXParser()
-            val handler = ManifestInfoHandler()
+            val handler = ManifestInfoHandler(sdkRootPath)
 
             try {
                 saxParser.parse(inp, handler)
@@ -38,13 +38,33 @@ class ManifestInfo(
 }
 
 @VisibleForTesting
-class ManifestInfoHandler : DefaultHandler() {
+class ManifestInfoHandler(
+    private val mSdkRootPath: String?
+) : DefaultHandler() {
 
     private var mRef: String? = null
 
     override fun startElement(uri: String?, localName: String?, qName: String?, attributes: Attributes?) {
         if (qName == "default") {
             mRef = attributes?.getValue("revision")
+        }
+
+        if (qName == "include") {
+            val manifestName = attributes?.getValue("name")
+            val manifestFile = File(mSdkRootPath, ".repo/manifests/$manifestName")
+            if (manifestFile.exists() && manifestFile.isFile) {
+                val manifestInfo = FileInputStream(manifestFile).use {
+                    try {
+                        ManifestInfo.read(it, mSdkRootPath)
+                    } catch (e: IOException) {
+                        LOG.error(e)
+                        null
+                    }
+                }
+                if (manifestInfo != null) {
+                    mRef = manifestInfo.reference
+                }
+            }
         }
     }
 
