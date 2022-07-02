@@ -21988,4 +21988,215 @@
         <field name="vintf_fragments" type="string[]" descr="VINTF manifest fragments to be installed if this module is installed"/>
         <field name="wrapper" type="string" descr="installable script to execute the resulting jar"/>
     </blueprint>
+    <blueprint name="package">
+        <field name="default_applicable_licenses" type="string[]" descr="Specifies the default license terms for all modules defined in this package." />
+        <field name="default_visibility" type="string[]" descr="Specifies the default visibility for all modules defined in this package." />
+    </blueprint>
+    <blueprint name="csuite_test">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="defaults" type="blueprint[]"/>
+        <field name="arch" type="string"/>
+        <field name="compile_multilib" type="string" descr="control whether this module compiles for 32-bit, 64-bit, or both.  Possible values are &quot;32&quot; (compile for 32-bit only), &quot;64&quot; (compile for 64-bit only), &quot;both&quot; (compile for both architectures), or &quot;first&quot; (compile for 64-bit on a 64-bit platform, and 32-bit on a 32-bit platform)."/>
+        <field name="debug_ramdisk" type="bool" descr="Whether this module is installed to debug ramdisk"/>
+        <field name="device_specific" type="bool" descr="whether this module is specific to a device, not only for SoC, but also for off-chip peripherals. When set to true, it is installed into /odm (or /vendor/odm if odm partition does not exist, or /system/vendor/odm if both odm and vendor partitions do not exist). This implies `soc_specific:true`."/>
+        <object-field name="dist">
+            <field name="targets" type="string[]" descr="Copy the output of this module to the $DIST_DIR when `dist` is specified on the command line and any of these targets are also on the command line, or otherwise built"/>
+            <field name="dest" type="string" descr="The name of the output artifact. This defaults to the basename of the output of the module."/>
+            <field name="dir" type="string" descr="The directory within the dist directory to store the artifact. Defaults to the top level directory (&quot;&quot;)."/>
+            <field name="suffix" type="string" descr="A suffix to add to the artifact file name (before any extension)."/>
+            <field name="tag" type="string" descr="A string tag to select the OutputFiles associated with the tag. If no tag is specified then it will select the default dist paths provided by the module type. If a tag of &quot;&quot; is specified then it will return the default output files provided by the modules, i.e. the result of calling OutputFiles(&quot;&quot;)."/>
+        </object-field>
+        <field name="dists" type="string[]" descr="a list of configurations to distribute output files from this module to the distribution directory (default: $OUT/dist, configurable with $DIST_DIR)"/>
+        <field name="enabled" type="bool" descr="emit build rules for this module Disabling a module should only be done for those modules that cannot be built in the current environment. Modules that can build in the current environment but are not usually required (e.g. superceded by a prebuilt) should not be disabled as that will prevent them from being built by the checkbuild target and so prevent early detection of changes that have broken those modules."/>
+        <field name="host_required" type="string[]" descr="names of other modules to install on host if this module is installed"/>
+        <field name="init_rc" type="string[]" descr="init.rc files to be installed if this module is installed"/>
+        <field name="licenses" type="string[]" descr="Describes the licenses applicable to this module. Must reference license modules."/>
+        <field name="multilib" type="string"/>
+        <field name="native_bridge_supported" type="bool" descr="Whether this module is built for non-native architectures (also known as native bridge binary)"/>
+        <field name="notice" type="string" descr="relative path to a file to include in the list of notices for the device"/>
+        <field name="owner" type="string" descr="vendor who owns this module"/>
+        <field name="product_specific" type="bool" descr="whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."/>
+        <field name="proprietary" type="bool" descr="whether this is a proprietary vendor module, and should be installed into /vendor"/>
+        <field name="ramdisk" type="bool" descr="Whether this module is installed to ramdisk"/>
+        <field name="recovery" type="bool" descr="Whether this module is installed to recovery partition"/>
+        <field name="required" type="blueprint[]" descr="names of other modules to install if this module is installed"/>
+        <field name="soc_specific" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."/>
+        <field name="system_ext_specific" type="bool" descr="whether this module extends system. When set to true, it is installed into /system_ext (or /system/system_ext if system_ext partition does not exist)."/>
+        <object-field name="target" type="string">
+            <object-field name="host">
+                <field name="compile_multilib" type="string"/>
+            </object-field>
+        </object-field>
+        <field name="target_required" type="string[]" descr="names of other modules to install on target if this module is installed"/>
+        <field name="test_config_template" type="string" descr="Local path to a module template xml file. The content of the template will be used to generate test modules at runtime."/>
+        <field name="test_plan_include" type="string" descr="Local path to a test plan config xml to be included in the generated plan."/>
+        <field name="vendor" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist). Use `soc_specific` instead for better meaning."/>
+        <field name="vendor_ramdisk" type="bool" descr="Whether this module is installed to vendor ramdisk"/>
+        <field name="vintf_fragments" type="string[]" descr="VINTF manifest fragments to be installed if this module is installed"/>
+        <field name="visibility" type="string[]" descr="Controls the visibility of this module to other modules. Allowable values are one or more of these formats: If a module does not specify the `visibility` property then it uses the `default_visibility` property of the `package` module in the module's package. If the `default_visibility` property is not set for the module's package then it will use the `default_visibility` of its closest ancestor package for which a `default_visibility` property is specified. If no `default_visibility` property can be found then the module uses the global default of `//visibility:legacy_public`. The `visibility` property has no effect on a defaults module although it does apply to any non-defaults module that uses it. To set the visibility of a defaults module, use the `defaults_visibility` property on the defaults module; not to be confused with the `default_visibility` property on the package module. See https://android.googlesource.com/platform/build/soong/+/master/README.md#visibility for more details."/>
+    </blueprint>
+    <blueprint name="csuite_config">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="arch" type="string"/>
+        <field name="compile_multilib" type="string" descr="control whether this module compiles for 32-bit, 64-bit, or both.  Possible values are &quot;32&quot; (compile for 32-bit only), &quot;64&quot; (compile for 64-bit only), &quot;both&quot; (compile for both architectures), or &quot;first&quot; (compile for 64-bit on a 64-bit platform, and 32-bit on a 32-bit platform)."/>
+        <field name="debug_ramdisk" type="bool" descr="Whether this module is installed to debug ramdisk"/>
+        <field name="device_specific" type="bool" descr="whether this module is specific to a device, not only for SoC, but also for off-chip peripherals. When set to true, it is installed into /odm (or /vendor/odm if odm partition does not exist, or /system/vendor/odm if both odm and vendor partitions do not exist). This implies `soc_specific:true`."/>
+        <object-field name="dist">
+            <field name="targets" type="string[]" descr="Copy the output of this module to the $DIST_DIR when `dist` is specified on the command line and any of these targets are also on the command line, or otherwise built"/>
+            <field name="dest" type="string" descr="The name of the output artifact. This defaults to the basename of the output of the module."/>
+            <field name="dir" type="string" descr="The directory within the dist directory to store the artifact. Defaults to the top level directory (&quot;&quot;)."/>
+            <field name="suffix" type="string" descr="A suffix to add to the artifact file name (before any extension)."/>
+            <field name="tag" type="string" descr="A string tag to select the OutputFiles associated with the tag. If no tag is specified then it will select the default dist paths provided by the module type. If a tag of &quot;&quot; is specified then it will return the default output files provided by the modules, i.e. the result of calling OutputFiles(&quot;&quot;)."/>
+        </object-field>
+        <field name="dists" type="string[]" descr="a list of configurations to distribute output files from this module to the distribution directory (default: $OUT/dist, configurable with $DIST_DIR)"/>
+        <field name="enabled" type="bool" descr="emit build rules for this module Disabling a module should only be done for those modules that cannot be built in the current environment. Modules that can build in the current environment but are not usually required (e.g. superceded by a prebuilt) should not be disabled as that will prevent them from being built by the checkbuild target and so prevent early detection of changes that have broken those modules."/>
+        <field name="host_required" type="string[]" descr="names of other modules to install on host if this module is installed"/>
+        <field name="init_rc" type="string[]" descr="init.rc files to be installed if this module is installed"/>
+        <field name="licenses" type="string[]" descr="Describes the licenses applicable to this module. Must reference license modules."/>
+        <field name="multilib" type="string"/>
+        <field name="native_bridge_supported" type="bool" descr="Whether this module is built for non-native architectures (also known as native bridge binary)"/>
+        <field name="notice" type="string" descr="relative path to a file to include in the list of notices for the device"/>
+        <field name="owner" type="string" descr="vendor who owns this module"/>
+        <field name="product_specific" type="bool" descr="whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."/>
+        <field name="proprietary" type="bool" descr="whether this is a proprietary vendor module, and should be installed into /vendor"/>
+        <field name="ramdisk" type="bool" descr="Whether this module is installed to ramdisk"/>
+        <field name="recovery" type="bool" descr="Whether this module is installed to recovery partition"/>
+        <field name="required" type="blueprint[]" descr="names of other modules to install if this module is installed"/>
+        <field name="soc_specific" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."/>
+        <field name="system_ext_specific" type="bool" descr="whether this module extends system. When set to true, it is installed into /system_ext (or /system/system_ext if system_ext partition does not exist)."/>
+        <object-field name="target" type="string">
+            <object-field name="host">
+                <field name="compile_multilib" type="string"/>
+            </object-field>
+        </object-field>
+        <field name="target_required" type="string[]" descr="names of other modules to install on target if this module is installed"/>
+        <field name="test_config" type="string" descr="Override the default (AndroidTest.xml) test manifest file name."/>
+        <field name="vendor" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist). Use `soc_specific` instead for better meaning."/>
+        <field name="vendor_ramdisk" type="bool" descr="Whether this module is installed to vendor ramdisk"/>
+        <field name="vintf_fragments" type="string[]" descr="VINTF manifest fragments to be installed if this module is installed"/>
+        <field name="visibility" type="string[]" descr="Controls the visibility of this module to other modules. Allowable values are one or more of these formats: If a module does not specify the `visibility` property then it uses the `default_visibility` property of the `package` module in the module's package. If the `default_visibility` property is not set for the module's package then it will use the `default_visibility` of its closest ancestor package for which a `default_visibility` property is specified. If no `default_visibility` property can be found then the module uses the global default of `//visibility:legacy_public`. The `visibility` property has no effect on a defaults module although it does apply to any non-defaults module that uses it. To set the visibility of a defaults module, use the `defaults_visibility` property on the defaults module; not to be confused with the `default_visibility` property on the package module. See https://android.googlesource.com/platform/build/soong/+/master/README.md#visibility for more details."/>
+    </blueprint>
+    <blueprint name="license">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="defaults" type="blueprint[]"/>
+        <field name="copyright_notice" type="string" descr="Specifies a short copyright notice to use for the license."/>
+        <field name="license_kinds" type="string[]" descr="Specifies the kinds of license that apply."/>
+        <field name="license_text" type="string[]" descr="Specifies the path or label for the text of the license."/>
+        <field name="package_name" type="string" descr="Specifies the package name to which the license applies."/>
+        <field name="sdk_member_name" type="string" descr="Name of the module that this sdk member is representing"/>
+        <field name="visibility" type="string[]" descr="Specifies where this license can be used"/>
+    </blueprint>
+    <blueprint name="license_kind">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="defaults" type="blueprint[]"/>
+        <field name="conditions" type="string[]" descr="Specifies the conditions for all licenses of the kind."/>
+        <field name="url" type="string" descr="Specifies the url to the canonical license definition."/>
+        <field name="visibility" type="string[]" descr="Specifies where this license can be used"/>
+    </blueprint>
+    <blueprint name="makefile_goal">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="compile_multilib" type="string" descr="control whether this module compiles for 32-bit, 64-bit, or both.  Possible values are &quot;32&quot; (compile for 32-bit only), &quot;64&quot; (compile for 64-bit only), &quot;both&quot; (compile for both architectures), or &quot;first&quot; (compile for 64-bit on a 64-bit platform, and 32-bit on a 32-bit platform)."/>
+        <field name="debug_ramdisk" type="bool" descr="Whether this module is installed to debug ramdisk"/>
+        <field name="device_specific" type="bool" descr="whether this module is specific to a device, not only for SoC, but also for off-chip peripherals. When set to true, it is installed into /odm (or /vendor/odm if odm partition does not exist, or /system/vendor/odm if both odm and vendor partitions do not exist). This implies `soc_specific:true`."/>
+        <object-field name="dist">
+            <field name="targets" type="string[]" descr="Copy the output of this module to the $DIST_DIR when `dist` is specified on the command line and any of these targets are also on the command line, or otherwise built"/>
+            <field name="dest" type="string" descr="The name of the output artifact. This defaults to the basename of the output of the module."/>
+            <field name="dir" type="string" descr="The directory within the dist directory to store the artifact. Defaults to the top level directory (&quot;&quot;)."/>
+            <field name="suffix" type="string" descr="A suffix to add to the artifact file name (before any extension)."/>
+            <field name="tag" type="string" descr="A string tag to select the OutputFiles associated with the tag. If no tag is specified then it will select the default dist paths provided by the module type. If a tag of &quot;&quot; is specified then it will return the default output files provided by the modules, i.e. the result of calling OutputFiles(&quot;&quot;)."/>
+        </object-field>
+        <field name="dists" type="string[]" descr="a list of configurations to distribute output files from this module to the distribution directory (default: $OUT/dist, configurable with $DIST_DIR)"/>
+        <field name="enabled" type="bool" descr="emit build rules for this module Disabling a module should only be done for those modules that cannot be built in the current environment. Modules that can build in the current environment but are not usually required (e.g. superceded by a prebuilt) should not be disabled as that will prevent them from being built by the checkbuild target and so prevent early detection of changes that have broken those modules."/>
+        <field name="host_required" type="string[]" descr="names of other modules to install on host if this module is installed"/>
+        <field name="init_rc" type="string[]" descr="init.rc files to be installed if this module is installed"/>
+        <field name="licenses" type="string[]" descr="Describes the licenses applicable to this module. Must reference license modules."/>
+        <field name="native_bridge_supported" type="bool" descr="Whether this module is built for non-native architectures (also known as native bridge binary)"/>
+        <field name="notice" type="string" descr="relative path to a file to include in the list of notices for the device"/>
+        <field name="owner" type="string" descr="vendor who owns this module"/>
+        <field name="product_out_path" type="string" descr="Makefile goal output file path, relative to PRODUCT_OUT."/>
+        <field name="product_specific" type="bool" descr="whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."/>
+        <field name="proprietary" type="bool" descr="whether this is a proprietary vendor module, and should be installed into /vendor"/>
+        <field name="ramdisk" type="bool" descr="Whether this module is installed to ramdisk"/>
+        <field name="recovery" type="bool" descr="Whether this module is installed to recovery partition"/>
+        <field name="required" type="blueprint[]" descr="names of other modules to install if this module is installed"/>
+        <field name="soc_specific" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."/>
+        <field name="system_ext_specific" type="bool" descr="whether this module extends system. When set to true, it is installed into /system_ext (or /system/system_ext if system_ext partition does not exist)."/>
+        <object-field name="target">
+            <object-field name="host">
+                <field name="compile_multilib" type="string"/>
+            </object-field>
+        </object-field>
+        <field name="target_required" type="string[]" descr="names of other modules to install on target if this module is installed"/>
+        <field name="vendor" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist). Use `soc_specific` instead for better meaning."/>
+        <field name="vendor_ramdisk" type="bool" descr="Whether this module is installed to vendor ramdisk"/>
+        <field name="vintf_fragments" type="string[]" descr="VINTF manifest fragments to be installed if this module is installed"/>
+        <field name="visibility" type="string[]" descr="Controls the visibility of this module to other modules. Allowable values are one or more of these formats: If a module does not specify the `visibility` property then it uses the `default_visibility` property of the `package` module in the module's package. If the `default_visibility` property is not set for the module's package then it will use the `default_visibility` of its closest ancestor package for which a `default_visibility` property is specified. If no `default_visibility` property can be found then the module uses the global default of `//visibility:legacy_public`. The `visibility` property has no effect on a defaults module although it does apply to any non-defaults module that uses it. To set the visibility of a defaults module, use the `defaults_visibility` property on the defaults module; not to be confused with the `default_visibility` property on the package module. See https://android.googlesource.com/platform/build/soong/+/master/README.md#visibility for more details."/>
+    </blueprint>
+    <blueprint name="prebuilt_build_tool">
+        <field name="name" type="string" descr="The name of the module.  Must be unique across all modules."/>
+        <field name="src" type="string" descr="Source file to be executed for this build tool"/>
+        <field name="arch" type="string"/>
+        <field name="compile_multilib" type="string" descr="control whether this module compiles for 32-bit, 64-bit, or both.  Possible values are &quot;32&quot; (compile for 32-bit only), &quot;64&quot; (compile for 64-bit only), &quot;both&quot; (compile for both architectures), or &quot;first&quot; (compile for 64-bit on a 64-bit platform, and 32-bit on a 32-bit platform)."/>
+        <field name="debug_ramdisk" type="bool" descr="Whether this module is installed to debug ramdisk"/>
+        <field name="deps" type="string[]" descr="Extra files that should trigger rules using this tool to rebuild"/>
+        <field name="device_specific" type="bool" descr="whether this module is specific to a device, not only for SoC, but also for off-chip peripherals. When set to true, it is installed into /odm (or /vendor/odm if odm partition does not exist, or /system/vendor/odm if both odm and vendor partitions do not exist). This implies `soc_specific:true`."/>
+        <object-field name="dist">
+            <field name="targets" type="string[]" descr="Copy the output of this module to the $DIST_DIR when `dist` is specified on the command line and any of these targets are also on the command line, or otherwise built"/>
+            <field name="dest" type="string" descr="The name of the output artifact. This defaults to the basename of the output of the module."/>
+            <field name="dir" type="string" descr="The directory within the dist directory to store the artifact. Defaults to the top level directory (&quot;&quot;)."/>
+            <field name="suffix" type="string" descr="A suffix to add to the artifact file name (before any extension)."/>
+            <field name="tag" type="string" descr="A string tag to select the OutputFiles associated with the tag. If no tag is specified then it will select the default dist paths provided by the module type. If a tag of &quot;&quot; is specified then it will return the default output files provided by the modules, i.e. the result of calling OutputFiles(&quot;&quot;)."/>
+        </object-field>
+        <field name="dists" type="string[]" descr="a list of configurations to distribute output files from this module to the distribution directory (default: $OUT/dist, configurable with $DIST_DIR)"/>
+        <field name="enabled" type="bool" descr="emit build rules for this module Disabling a module should only be done for those modules that cannot be built in the current environment. Modules that can build in the current environment but are not usually required (e.g. superceded by a prebuilt) should not be disabled as that will prevent them from being built by the checkbuild target and so prevent early detection of changes that have broken those modules."/>
+        <field name="export_to_make_var" type="string" descr="Create a make variable with the specified name that contains the path to this prebuilt built tool, relative to the root of the source tree."/>
+        <field name="host_required" type="string[]" descr="names of other modules to install on host if this module is installed"/>
+        <field name="init_rc" type="string[]" descr="init.rc files to be installed if this module is installed"/>
+        <field name="licenses" type="string[]" descr="Describes the licenses applicable to this module. Must reference license modules."/>
+        <field name="multilib" type="string"/>
+        <field name="native_bridge_supported" type="bool" descr="Whether this module is built for non-native architectures (also known as native bridge binary)"/>
+        <field name="notice" type="string" descr="relative path to a file to include in the list of notices for the device"/>
+        <field name="owner" type="string" descr="vendor who owns this module"/>
+        <field name="prefer" type="bool" descr="When prefer is set to true the prebuilt will be used instead of any source module with a matching name."/>
+        <field name="product_specific" type="bool" descr="whether this module is specific to a software configuration of a product (e.g. country, network operator, etc). When set to true, it is installed into /product (or /system/product if product partition does not exist)."/>
+        <field name="proprietary" type="bool" descr="whether this is a proprietary vendor module, and should be installed into /vendor"/>
+        <field name="ramdisk" type="bool" descr="Whether this module is installed to ramdisk"/>
+        <field name="recovery" type="bool" descr="Whether this module is installed to recovery partition"/>
+        <field name="required" type="blueprint[]" descr="names of other modules to install if this module is installed"/>
+        <field name="soc_specific" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist)."/>
+        <field name="system_ext_specific" type="bool" descr="whether this module extends system. When set to true, it is installed into /system_ext (or /system/system_ext if system_ext partition does not exist)."/>
+        <object-field name="target" type="string">
+            <object-field name="host">
+                <field name="compile_multilib" type="string"/>
+            </object-field>
+        </object-field>
+        <field name="target_required" type="string[]" descr="names of other modules to install on target if this module is installed"/>
+        <field name="vendor" type="bool" descr="whether this module is specific to an SoC (System-On-a-Chip). When set to true, it is installed into /vendor (or /system/vendor if vendor partition does not exist). Use `soc_specific` instead for better meaning."/>
+        <field name="vendor_ramdisk" type="bool" descr="Whether this module is installed to vendor ramdisk"/>
+        <field name="vintf_fragments" type="string[]" descr="VINTF manifest fragments to be installed if this module is installed"/>
+        <field name="visibility" type="string[]" descr="Controls the visibility of this module to other modules. Allowable values are one or more of these formats: If a module does not specify the `visibility` property then it uses the `default_visibility` property of the `package` module in the module's package. If the `default_visibility` property is not set for the module's package then it will use the `default_visibility` of its closest ancestor package for which a `default_visibility` property is specified. If no `default_visibility` property can be found then the module uses the global default of `//visibility:legacy_public`. The `visibility` property has no effect on a defaults module although it does apply to any non-defaults module that uses it. To set the visibility of a defaults module, use the `defaults_visibility` property on the defaults module; not to be confused with the `default_visibility` property on the package module. See https://android.googlesource.com/platform/build/soong/+/master/README.md#visibility for more details."/>
+    </blueprint>
+    <blueprint name="soong_config_bool_variable">
+        <field name="name" type="string"/>
+    </blueprint>
+    <blueprint name="soong_config_module_type">
+        <field name="name" type="string" descr="the name of the new module type.  Unlike most modules, this name does not need to be unique, although only one module type with any name will be importable into an Android.bp file."/>
+        <field name="bool_variables" type="string[]" descr="the list of boolean SOONG_CONFIG variables that this module type will read"/>
+        <field name="config_namespace" type="string" descr="the SOONG_CONFIG_NAMESPACE value from a BoardConfig.mk that this module type will read configuration variables from."/>
+        <field name="module_type" type="string" descr="the module type that this module type will extend."/>
+        <field name="properties" type="string[]" descr="the list of properties that this module type will extend."/>
+        <field name="value_variables" type="string[]" descr="the list of SOONG_CONFIG variables that this module type will read. The value will be inserted into the properties with %s substitution."/>
+        <field name="variables" type="string[]" descr="the list of SOONG_CONFIG variables that this module type will read"/>
+    </blueprint>
+    <blueprint name="soong_config_module_type_import">
+        <field name="from" type="string"/>
+        <field name="module_types" type="string[]"/>
+    </blueprint>
+    <blueprint name="soong_config_string_variable">
+        <field name="name" type="string"/>
+        <field name="values" type="string[]"/>
+    </blueprint>
+    <blueprint name="soong_namespace">
+        <field name="imports" type="string[]" descr="a list of namespaces that contain modules that will be referenced by modules in this namespace."/>
+    </blueprint>
 </blueprints>

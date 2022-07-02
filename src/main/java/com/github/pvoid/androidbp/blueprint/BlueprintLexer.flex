@@ -215,7 +215,17 @@ BLUEPRIN_NAME=(java_defaults|
                ndk_prebuilt_object|
                libart_static_cc_defaults|
                package|
-               license
+               license|
+               license_kind|
+               csuite_test|
+               csuite_config|
+               makefile_goal|
+               prebuilt_build_tool|
+               soong_config_bool_variable|
+               soong_config_module_type|
+               soong_config_module_type_import|
+               soong_config_string_variable|
+               soong_namespace
                )
 VARIABLE_NAME=[a-zA-Z][a-zA-Z\-_0-9]*
 DOUBLE_QUOTE_STRING=\"([^\"\n\f] | \\\")*\"
