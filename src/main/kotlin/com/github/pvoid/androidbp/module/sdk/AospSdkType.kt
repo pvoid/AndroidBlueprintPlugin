@@ -168,7 +168,7 @@ class AospSdkType : JavaDependentSdkType(AOSP_SDK_TYPE_NAME) {
 
         return FileInputStream(manifest).use { it ->
             try {
-                ManifestInfo.read(it)
+                ManifestInfo.read(it, path)
             } catch (e: IOException) {
                 LOG.error(e)
                 null
