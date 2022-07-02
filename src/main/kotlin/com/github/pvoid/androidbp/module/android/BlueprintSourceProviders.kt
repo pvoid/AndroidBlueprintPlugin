@@ -53,6 +53,7 @@ class BlueprintSourceProviders(
     override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
         get() = emptyList()
 
+    @Deprecated("Do not use. This is unlikely to be what anybody needs.")
     override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
         get() = mAllSourceProviders
 

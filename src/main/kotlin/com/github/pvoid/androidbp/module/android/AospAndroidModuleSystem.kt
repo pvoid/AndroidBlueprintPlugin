@@ -99,6 +99,7 @@ class AospAndroidModuleSystem(
 
     override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
 
+    @Deprecated("Use the version with runtimeConfiguration parameter (b/153975895)")
     override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = mIdProvider
 
     override val applicationRClassConstantIds: Boolean = false
