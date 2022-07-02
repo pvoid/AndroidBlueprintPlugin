@@ -8,10 +8,10 @@ package com.github.pvoid.androidbp.blueprint.model
 
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.LOG
+import com.github.pvoid.androidbp.blueprint.BlueprintElementType
 import com.github.pvoid.androidbp.blueprint.BlueprintLanguage
 import com.github.pvoid.androidbp.blueprint.BlueprintLexerAdapter
 import com.github.pvoid.androidbp.blueprint.parser.BlueprintParser
-import com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes
 import com.github.pvoid.androidbp.module.sdk.AospSdkHelper
 import com.github.pvoid.androidbp.module.sdk.AospSdkType
 import com.intellij.lang.LanguageParserDefinitions
@@ -21,14 +21,13 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.impl.file.impl.FileManager
 import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.util.messages.Topic
 import java.io.File
 import java.io.IOException
+
+private val DUMNMY = BlueprintElementType("DUMMY")
 
 interface BlueprintChangeNotifier {
 
@@ -114,7 +113,7 @@ class BlueprintsTableImpl : BlueprintsTable {
                     BlueprintLexerAdapter(),
                     text
                 )
-                val element = FileElement(BlueprintTypes.DUMNMY, text)
+                val element = FileElement(DUMNMY, text)
                 parser.parse(element.elementType, builder) as? FileElement
                 result = builder.treeBuilt.toBlueprints(File(file.parent.path), extra)
             } catch (e: IOException) {

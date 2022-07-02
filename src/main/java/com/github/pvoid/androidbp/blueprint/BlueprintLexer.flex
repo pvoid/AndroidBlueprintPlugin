@@ -213,7 +213,9 @@ BLUEPRIN_NAME=(java_defaults|
                fluoride_defaults|
                toolchain_library|
                ndk_prebuilt_object|
-               libart_static_cc_defaults
+               libart_static_cc_defaults|
+               package|
+               license
                )
 VARIABLE_NAME=[a-zA-Z][a-zA-Z\-_0-9]*
 DOUBLE_QUOTE_STRING=\"([^\"\n\f] | \\\")*\"
