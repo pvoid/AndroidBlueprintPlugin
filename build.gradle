@@ -40,7 +40,7 @@ intellij {
 }
 
 patchPluginXml {
-    sinceBuild = '213.5744.223'
+    sinceBuild = '222.3345.118'
     changeNotes = """
       <ul>
         <li>Add IDEA 2022.2 support</li>
