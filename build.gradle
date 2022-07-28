@@ -13,7 +13,7 @@ apply plugin: "kotlin"
 apply plugin: "org.jetbrains.intellij"
 
 group 'com.github.pvoid.androidbp'
-version '1.0.0-RC4'
+version '1.0.0-RC5'
 
 repositories {
     mavenCentral()
@@ -43,10 +43,9 @@ patchPluginXml {
     sinceBuild = '213.5744.223'
     changeNotes = """
       <ul>
-        <li>Inject kotlin-std library in apps and libraries by default</li>
-        <li>Add java_test_host projects support</li>
-        <li>Add IDEA 2022.1 support</li>
-        <li>Switch to java 11</li>
+        <li>Add IDEA 2022.2 support</li>
+        <li>Add `package` and `license` to syntax support</li>
+        <li>Added recursive scanning of manifest.xml (thanks @Vlad8161)</li>
       </ul>"""
 }
 
