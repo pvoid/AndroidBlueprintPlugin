@@ -96,14 +96,12 @@ private class AospAndroidProjectSystem(
 
     override fun getAndroidFacetsWithPackageName(
         project: Project,
-        packageName: String,
-        scope: GlobalSearchScope
+        packageName: String
     ): Collection<AndroidFacet> {
         return ProjectFacetManager.getInstance(project)
             .getFacets(AndroidFacet.ID)
             .asSequence()
             .filter { getPackageName(it) == packageName }
-            .filter { facet -> facet.sourceProviders.mainManifestFile?.let(scope::contains) == true }
             .toList()
     }
 

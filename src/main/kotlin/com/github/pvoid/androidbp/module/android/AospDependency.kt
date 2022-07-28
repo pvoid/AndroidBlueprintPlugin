@@ -86,6 +86,16 @@ class AospDependency(
             return RecursiveResourceFolder(res.first().toPathString()) // TODO: Get folder with all resources
         }
 
+    override val assetsFolder: PathString?
+        get() {
+            val projectSdk = sdk ?: return null
+            val res = BlueprintHelper.collectBlueprintAssets(mBlueprint, projectSdk)
+            if (res.isEmpty()) {
+                return null
+            }
+            return res.first().toPathString()
+        }
+
     override val symbolFile: PathString?
         get() {
             val projectSdk = sdk ?: return null

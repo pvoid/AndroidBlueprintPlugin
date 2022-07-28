@@ -78,7 +78,7 @@ class AospAndroidModuleSystem(
     override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
     override fun getResourceModuleDependencies(): List<Module>
-        = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
+        = AndroidUtils.getAndroidLibraryDependencies(module).map(AndroidFacet::getModule)
 
     override fun registerDependency(coordinate: GradleCoordinate) {
         registerDependency(coordinate, DependencyType.IMPLEMENTATION)
@@ -98,9 +98,6 @@ class AospAndroidModuleSystem(
     override fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
 
     override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
-
-    @Deprecated("Use the version with runtimeConfiguration parameter (b/153975895)")
-    override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = mIdProvider
 
     override val applicationRClassConstantIds: Boolean = false
 

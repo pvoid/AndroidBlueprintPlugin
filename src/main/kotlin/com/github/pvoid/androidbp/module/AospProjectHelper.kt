@@ -6,7 +6,6 @@
 
 package com.github.pvoid.androidbp.module
 
-import android.content.res.BridgeAssetManagerExt
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.LOG
@@ -289,17 +288,6 @@ private class AospProjectHelperImpl : AospProjectHelper {
                 false
             }
         } ?: false
-
-        if (loaded && isAssetsBridgeLoaded()) {
-            BridgeAssetManagerExt.init(sdk.homePath!!);
-        }
-    }
-
-    private fun isAssetsBridgeLoaded(): Boolean = try {
-        Class.forName("android.content.res.BridgeAssetManager")
-        true
-    } catch (e: ClassNotFoundException) {
-        false
     }
 
     private fun addSourceRootFolder(model: ModifiableRootModel, srcs: List<VirtualFile>) {

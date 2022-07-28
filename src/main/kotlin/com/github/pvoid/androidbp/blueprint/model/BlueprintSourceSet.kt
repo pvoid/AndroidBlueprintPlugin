@@ -79,3 +79,5 @@ class GlobItem(pattern: String) : SourceSet {
 class SourceLink(pattern: String) : SourceSet {
     val library: String = pattern.substring(1)
 }
+
+class PathItem(val path: File) : SourceSet

@@ -29,6 +29,7 @@ interface BlueprintHelper {
     fun getBlueprintR(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun getBlueprintResApk(blueprint: Blueprint, sdk: Sdk): VirtualFile?
     fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeDynamic: Boolean): Set<File>
+    fun collectGeneratedSources(blueprint: Blueprint, sdk: Sdk): Set<File>
     fun collectBlueprintDependencies(blueprint: Blueprint, sdk: Sdk): List<Blueprint>
 
     companion object : BlueprintHelper by BlueprintHelperImpl()
@@ -115,21 +116,42 @@ class BlueprintHelperImpl : BlueprintHelper {
         }
     }
 
-    override fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeDynamic: Boolean): Set<File> {
+    override fun collectBlueprintSources(blueprint: Blueprint, sdk: Sdk, includeGenerated: Boolean): Set<File> {
         val sdkData = sdk.aospSdkData ?: return emptySet()
         val blueprintFile = sdkData.getBlueprintFile(blueprint.name)?.let { File(it.path) } ?: return emptySet()
 
         val sources = mutableSetOf<File>()
         collectBlueprintSources(sdkData, blueprintFile, blueprint) {
-            (this as? BlueprintWithSources)?.sources ?: emptyList()
+            val result = mutableListOf<SourceSet>()
+
+            (this as? BlueprintWithSources)?.sources?.apply {
+                result.addAll(this)
+            }
+            if (includeGenerated) {
+                val cachePath = AospSdkHelper.getCachePath(blueprint, sdk)
+                if (cachePath != null && blueprint is BlueprintWithDynamicSources) {
+                    result.add(PathItem(blueprint.getSources(cachePath)))
+                }
+            }
+            result
         }.forEach(sources::add)
 
-        if (includeDynamic) {
+        return sources
+    }
+
+    override fun collectGeneratedSources(blueprint: Blueprint, sdk: Sdk): Set<File> {
+        val sdkData = sdk.aospSdkData ?: return emptySet()
+        val blueprintFile = sdkData.getBlueprintFile(blueprint.name)?.let { File(it.path) } ?: return emptySet()
+
+        val sources = mutableSetOf<File>()
+        collectBlueprintSources(sdkData, blueprintFile, blueprint) {
             val cachePath = AospSdkHelper.getCachePath(blueprint, sdk)
             if (cachePath != null && blueprint is BlueprintWithDynamicSources) {
-                sources.add(blueprint.getSources(cachePath))
+                listOf(PathItem(blueprint.getSources(cachePath)))
+            } else {
+                emptyList()
             }
-        }
+        }.forEach(sources::add)
 
         return sources
     }
@@ -195,6 +217,7 @@ class BlueprintHelperImpl : BlueprintHelper {
                         }
                     }
                     is SourceLink -> sourceLinks.push(source.library)
+                    is PathItem -> sources.add(source.path)
                 }
             }
             true
