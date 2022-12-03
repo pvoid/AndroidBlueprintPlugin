@@ -13,7 +13,7 @@ apply plugin: "kotlin"
 apply plugin: "org.jetbrains.intellij"
 
 group 'com.github.pvoid.androidbp'
-version '1.0.0-RC5'
+version '1.0.0-RC6'
 
 repositories {
     mavenCentral()
@@ -43,9 +43,7 @@ patchPluginXml {
     sinceBuild = '223'
     changeNotes = """
       <ul>
-        <li>Add IDEA 2022.2 support</li>
-        <li>Add `package` and `license` to syntax support</li>
-        <li>Added recursive scanning of manifest.xml (thanks @Vlad8161)</li>
+        <li>Add IDEA 2022.3 support</li>
       </ul>"""
 }
 
