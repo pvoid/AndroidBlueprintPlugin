@@ -5,8 +5,8 @@
  */
 
 plugins {
-    id 'org.jetbrains.intellij' version '1.5.2'
-    id 'org.jetbrains.kotlin.jvm' version '1.7.0'
+    id 'org.jetbrains.intellij' version '1.10.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.22'
 }
 
 apply plugin: "kotlin"
@@ -32,7 +32,7 @@ test {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = '2022.2'
+    version = '2022.3'
     type = 'IC'
     plugins = ['java', 'android']
     downloadSources = true
@@ -40,7 +40,7 @@ intellij {
 }
 
 patchPluginXml {
-    sinceBuild = '222.3345.118'
+    sinceBuild = '223'
     changeNotes = """
       <ul>
         <li>Add IDEA 2022.2 support</li>
@@ -50,18 +50,18 @@ patchPluginXml {
 }
 
 compileJava {
-    targetCompatibility = "11"
-    sourceCompatibility = "11"
+    targetCompatibility = "17"
+    sourceCompatibility = "17"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "11"
-    sourceCompatibility = "11"
+    kotlinOptions.jvmTarget = "17"
+    sourceCompatibility = "17"
 }
 
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "11"
-    sourceCompatibility = "11"
+    kotlinOptions.jvmTarget = "17"
+    sourceCompatibility = "17"
 }
 
 sourceSets.main.java.srcDirs 'src/main/gen'

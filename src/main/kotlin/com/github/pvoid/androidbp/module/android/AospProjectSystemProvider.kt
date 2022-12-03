@@ -8,6 +8,7 @@ package com.github.pvoid.androidbp.module.android
 
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.project.DefaultBuildManager
 import com.android.tools.idea.projectsystem.*
@@ -30,13 +31,15 @@ import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.messages.MessageBus
-import org.jetbrains.android.dom.manifest.getPackageName
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
+import java.io.File
 import java.nio.file.Path
 
 const val AOSP_PROJECT_SYSTEM_ID = "com.github.pvoid.androidbp.AospAndroidProjectSystem"
@@ -101,8 +104,20 @@ private class AospAndroidProjectSystem(
         return ProjectFacetManager.getInstance(project)
             .getFacets(AndroidFacet.ID)
             .asSequence()
-            .filter { getPackageName(it) == packageName }
+            .filter { it.getPrimaryManifestXml()?.packageName == packageName }
             .toList()
+    }
+
+    override fun getClassJarProvider(): ClassJarProvider {
+        return object: ClassJarProvider {
+            override fun getModuleExternalLibraries(module: Module): List<File> {
+                return AndroidRootUtil.getExternalLibraries(module).map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
+            }
+
+            override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
+                return false
+            }
+        }
     }
 
     override fun getModuleSystem(module: Module): AndroidModuleSystem = moduleSystems.getOrPut(module) {

@@ -12,12 +12,10 @@ import com.android.projectmodel.*
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.github.pvoid.androidbp.blueprint.model.BlueprintWithArtifacts
 import com.github.pvoid.androidbp.blueprint.model.BlueprintsTable
 import com.github.pvoid.androidbp.module.AospProjectHelper
 import com.github.pvoid.androidbp.module.sdk.AospSdkHelper
-import com.github.pvoid.androidbp.toJarFileUrl
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -138,10 +136,6 @@ class AospAndroidModuleSystem(
     override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
 
     override val isViewBindingEnabled: Boolean = false
-
-    override fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> {
-        return getAndroidLibraryDependencies(DependencyScopeType.MAIN)
-    }
 
     override fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?): ClassFileFinder {
         return moduleClassFileFinder

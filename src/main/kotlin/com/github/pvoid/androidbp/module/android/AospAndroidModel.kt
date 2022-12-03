@@ -8,7 +8,6 @@ package com.github.pvoid.androidbp.module.android
 
 import com.android.projectmodel.DynamicResourceValue
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.model.Namespacing
@@ -18,15 +17,10 @@ import com.github.pvoid.androidbp.blueprint.model.BlueprintWithManifest
 import com.github.pvoid.androidbp.blueprint.model.JavaSdkLibraryBlueprint
 import com.github.pvoid.androidbp.module.sdk.AospSdkData
 import com.github.pvoid.androidbp.toFileSystemUrl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.JavaPsiFacade
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
@@ -61,13 +55,6 @@ class AospAndroidModel(
 
     override fun getTargetSdkVersion(): AndroidVersion = AndroidVersion(getPlatformVersion(), null)
 
-    override fun isGenerated(file: VirtualFile): Boolean = false
-
-    override fun getClassJarProvider(): ClassJarProvider = mProjectJarsProvider
-
-    override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean
-        = testIsClassFileOutOfDate(module, fqcn, classFile)
-
     override fun getNamespacing(): Namespacing
         = Namespacing.DISABLED
 
@@ -75,33 +62,6 @@ class AospAndroidModel(
 
     override fun getResValues(): MutableMap<String, DynamicResourceValue> {
         return mResources
-    }
-
-    private fun testIsClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
-        val project = module.project
-        val scope = module.moduleWithDependenciesScope
-        val sourceFile = ApplicationManager.getApplication().runReadAction<VirtualFile?> {
-            JavaPsiFacade.getInstance(project).findClass(fqcn, scope)?.let { psiClass ->
-                psiClass.containingFile?.virtualFile
-            }
-        }?: return false
-
-        // Edited but not yet saved?
-        if (FileDocumentManager.getInstance().isFileModified(sourceFile)) {
-            return true
-        }
-
-        // Check timestamp
-        val sourceFileModified = sourceFile.timeStamp
-
-        // User modifications on the source file might not always result on a new .class file.
-        // We use the project modification time instead to display the warning more reliably.
-        var lastBuildTimestamp = classFile.timeStamp
-        val projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp
-        if (projectBuildTimestamp != null) {
-            lastBuildTimestamp = projectBuildTimestamp
-        }
-        return lastBuildTimestamp in 1 until sourceFileModified
     }
 
     private fun getManifest(): Manifest? {

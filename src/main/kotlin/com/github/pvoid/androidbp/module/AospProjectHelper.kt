@@ -186,7 +186,6 @@ private class AospProjectHelperImpl : AospProjectHelper {
                     blueprint to facet
                 } else {
                     val config = AndroidFacetConfiguration()
-                    config.state.COMPILE_CUSTOM_GENERATED_SOURCES = false
                     config.state.GEN_FOLDER_RELATIVE_PATH_APT = "/.idea/cache/gen/"
                     config.state.GEN_FOLDER_RELATIVE_PATH_AIDL = "/.idea/cache/gen/"
                     config.state.ALLOW_USER_CONFIGURATION = false

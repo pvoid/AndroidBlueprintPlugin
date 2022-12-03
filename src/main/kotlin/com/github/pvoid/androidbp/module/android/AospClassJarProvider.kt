@@ -6,12 +6,14 @@
 
 package com.github.pvoid.androidbp.module.android
 
+import com.android.tools.idea.gradle.project.model.ClassFileUtil
 import com.android.tools.idea.model.ClassJarProvider
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
 class AospClassJarProvider : ClassJarProvider {
@@ -25,5 +27,9 @@ class AospClassJarProvider : ClassJarProvider {
         }.map {
             File(it.path)
         }
+    }
+
+    override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
+        return ClassFileUtil.isClassSourceFileNewerThanClassClassFile(module, fqcn, classFile)
     }
 }
