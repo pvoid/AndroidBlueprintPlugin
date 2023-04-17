@@ -84,7 +84,7 @@ internal class InitialProjectSyncTask (
 
         var sdk = ProjectJdkTable.getInstance().allJdks.firstOrNull { it.homePath == jdkPath.absolutePath }
         if (sdk == null) {
-            sdk = JavaSdk.getInstance().createJdk("AOSP JDK (API ${project.guessPlatformVersion()})", jdkPath.absolutePath)
+            sdk = JavaSdk.getInstance().createJdk("AOSP JDK (API ${project.guessPlatformVersion()})", jdkPath.absolutePath, false)
             addSdk = true
         }
 
