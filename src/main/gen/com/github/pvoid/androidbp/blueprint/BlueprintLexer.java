@@ -12,9 +12,8 @@ import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 
-import com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory;
-import static com.github.pvoid.androidbp.blueprint.model.BlueprintSymbolFactory.Token.*;
-import com.github.pvoid.androidbp.blueprint.model.BlueprintIElementSymbolFactory;
+import com.github.pvoid.androidbp.blueprint.parser.BlueprintSymbolFactory;
+import static com.github.pvoid.androidbp.blueprint.parser.BlueprintSymbolFactory.Token.*;
 
 
 /**
@@ -1757,7 +1756,7 @@ public class BlueprintLexer implements FlexLexer {
 
   public BlueprintLexer() {
     this((java.io.Reader)null);
-    factory = new BlueprintIElementSymbolFactory();
+    factory = BlueprintSymbolFactory.create();
   }
 
   public BlueprintLexer(java.io.Reader reader, BlueprintSymbolFactory fcatory) {
@@ -1788,7 +1787,7 @@ public class BlueprintLexer implements FlexLexer {
       return factory.skipSpaces();
   }
 
-  private <T> T create(BlueprintIElementSymbolFactory.Token type) {
+  private <T extends IElementType> T create(BlueprintSymbolFactory.Token type) {
       return factory.<T>create(type, yytext());
   }
 

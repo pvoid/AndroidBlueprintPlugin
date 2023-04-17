@@ -20,9 +20,5 @@ class BlueprintCompletionContributor : CompletionContributor(), DumbAware {
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(BlueprintTypes.VARIABLE_VALUE), BlueprintVariableValueCompletionProvider())
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(BlueprintTypes.STRING), BlueprintVariableValueCompletionProvider())
     }
-
-    override fun beforeCompletion(context: CompletionInitializationContext) {
-        super.beforeCompletion(context)
-    }
 }
 

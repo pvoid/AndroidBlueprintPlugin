@@ -13,6 +13,7 @@ import com.intellij.psi.PsiElement;
 
 public interface BlueprintStringExpr extends PsiElement {
 
+  @NotNull
   String getValue();
 
 }

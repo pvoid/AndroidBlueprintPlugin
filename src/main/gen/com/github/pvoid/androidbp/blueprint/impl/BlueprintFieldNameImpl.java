@@ -16,7 +16,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.github.pvoid.androidbp.blueprint.psi.*;
-import com.github.pvoid.androidbp.blueprint.BlueprintPsiUtilsMirror;
+import com.github.pvoid.androidbp.blueprint.parser.BlueprintPsiUtils;
 
 public class BlueprintFieldNameImpl extends ASTWrapperPsiElement implements BlueprintFieldName {
 
@@ -32,16 +32,6 @@ public class BlueprintFieldNameImpl extends ASTWrapperPsiElement implements Blue
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof BlueprintVisitor) accept((BlueprintVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  public boolean isBlueprintField() {
-    return BlueprintPsiUtilsMirror.isBlueprintField(this);
-  }
-
-  @Override
-  public BlueprintBlueprint getFieldBlueprint() {
-    return BlueprintPsiUtilsMirror.getFieldBlueprint(this);
   }
 
 }

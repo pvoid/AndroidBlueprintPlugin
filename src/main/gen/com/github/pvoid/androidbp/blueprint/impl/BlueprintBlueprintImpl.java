@@ -16,7 +16,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.github.pvoid.androidbp.blueprint.psi.*;
-import com.github.pvoid.androidbp.blueprint.BlueprintPsiUtilsMirror;
+import com.github.pvoid.androidbp.blueprint.parser.BlueprintPsiUtils;
 
 public class BlueprintBlueprintImpl extends ASTWrapperPsiElement implements BlueprintBlueprint {
 
@@ -47,8 +47,9 @@ public class BlueprintBlueprintImpl extends ASTWrapperPsiElement implements Blue
   }
 
   @Override
+  @Nullable
   public String getBlueprintName() {
-    return BlueprintPsiUtilsMirror.getBlueprintName(this);
+    return BlueprintPsiUtils.getBlueprintName(this);
   }
 
 }

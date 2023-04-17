@@ -6,8 +6,16 @@
 
 package com.github.pvoid.androidbp.blueprint.completion
 
-import com.github.pvoid.androidbp.blueprint.psi.*
-import com.intellij.codeInsight.completion.*
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintBlueprint
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintFieldName
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintMembers
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintObject
+import com.github.pvoid.androidbp.blueprint.psi.BlueprintPair
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionProvider
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.util.PsiTreeUtil
@@ -68,7 +76,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
         var node = obj.parent
         while (node != null) {
             if (node is BlueprintBlueprint) {
-                path.add(node.blueprintName)
+                node.blueprintName?.let(path::add)
                 break
             }
 

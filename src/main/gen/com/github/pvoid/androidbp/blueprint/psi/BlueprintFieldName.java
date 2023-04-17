@@ -13,8 +13,4 @@ import com.intellij.psi.PsiElement;
 
 public interface BlueprintFieldName extends PsiElement {
 
-  boolean isBlueprintField();
-
-  BlueprintBlueprint getFieldBlueprint();
-
 }
