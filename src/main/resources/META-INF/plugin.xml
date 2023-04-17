@@ -19,29 +19,23 @@
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.android</depends>
 
+    <extensions defaultExtensionNs="com.android.project">
+        <projectsystem implementation="com.github.pvoid.androidbp.idea.project.BlueprintProjectSystemProvider"/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
-        <moduleBuilder builderClass="com.github.pvoid.androidbp.module.AndroidBpModuleBuilder"
-                       id="ANDROID_BP_MODULE"/>
-        <moduleType id="ANDROID_BP_MODULE_TYPE" implementationClass="com.github.pvoid.androidbp.module.AndroidBpModuleType"/>
-        <sdkType implementation="com.github.pvoid.androidbp.module.sdk.AospSdkType" />
         <fileType name="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFileType"
                   fieldName="INSTANCE" language="Blueprint" extensions="bp"/>
-        <fileTypeFactory implementation="com.github.pvoid.androidbp.blueprint.BlueprintFileTypeFactory" />
         <lang.parserDefinition language="Blueprint"
-                               implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintParserDefinition"/>
+                               implementationClass="com.github.pvoid.androidbp.blueprint.parser.BlueprintParserDefinition"/>
         <lang.syntaxHighlighterFactory language="Blueprint"
                                        implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintSyntaxHighlighterFactory"/>
-        <postStartupActivity implementation="com.github.pvoid.androidbp.BlueprintStartupActivity" />
         <annotator language="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintAnnotator"/>
         <completion.contributor language="any" implementationClass="com.github.pvoid.androidbp.blueprint.completion.BlueprintCompletionContributor" />
         <lang.commenter language="Blueprint" implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintCommenter"/>
-        <lang.foldingBuilder language="Blueprint"
-                             implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFoldingBuilder"/>
-        <projectStructureDetector implementation="com.github.pvoid.androidbp.module.AndroidBpProjectStructureDetector" />
-    </extensions>
-
-    <extensions defaultExtensionNs="com.android.project">
-        <projectsystem implementation="com.github.pvoid.androidbp.module.android.AospProjectSystemProvider"/>
+        <!--lang.foldingBuilder language="Blueprint"
+                             implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFoldingBuilder"/-->
+        <notificationGroup id="AOSP Blueprint" displayType="BALLOON"/>
     </extensions>
 
     <projectListeners>

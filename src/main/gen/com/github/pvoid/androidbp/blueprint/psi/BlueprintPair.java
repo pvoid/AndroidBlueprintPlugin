@@ -7,6 +7,7 @@
 // This is a generated file. Not intended for manual editing.
 package com.github.pvoid.androidbp.blueprint.psi;
 
+import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.github.pvoid.androidbp.blueprint.completion.BlueprintField;
@@ -19,6 +20,7 @@ public interface BlueprintPair extends PsiElement {
   @NotNull
   BlueprintValue getValue();
 
+  @Nullable
   BlueprintField getFieldDef();
 
 }

@@ -19,6 +19,7 @@ public interface BlueprintBlueprint extends PsiElement {
   @Nullable
   BlueprintMembers getMembers();
 
+  @Nullable
   String getBlueprintName();
 
 }

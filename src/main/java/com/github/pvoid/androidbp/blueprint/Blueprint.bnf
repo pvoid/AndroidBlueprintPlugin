@@ -19,7 +19,7 @@
     elementTypeClass="com.github.pvoid.androidbp.blueprint.BlueprintElementType"
     tokenTypeClass="com.github.pvoid.androidbp.blueprint.BlueprintTokenType"
 
-    psiImplUtilClass="com.github.pvoid.androidbp.blueprint.BlueprintPsiUtilsMirror"
+    psiImplUtilClass="com.github.pvoid.androidbp.blueprint.parser.BlueprintPsiUtils"
 
     tokens = [
         OBJECT_START='{'
@@ -61,7 +61,7 @@ array_element ::= (STRING|BOOL|NUMBER|VARIABLE_NAME|LINK) // TODO: Create dedica
 
 pair ::= field_name EQUALS value { recoverWhile="pair_statement_recover" pin=3 methods=[ getFieldDef ] }
 
-field_name ::= FIELD_NAME { methods=[isBlueprintField getFieldBlueprint] }
+field_name ::= FIELD_NAME
 
 private pair_statement_recover ::= !(WHITE_SPACE | ELEMENT_SEPARATOR | OBJECT_END)
 

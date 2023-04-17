@@ -6,14 +6,15 @@
 
 package com.github.pvoid.androidbp.blueprint.completion
 
-import com.github.pvoid.androidbp.blueprint.completion.BlueprintBooleanField
-import com.github.pvoid.androidbp.blueprint.completion.BlueprintReferencesListField
+import com.github.pvoid.androidbp.blueprint.BlueprintsTable
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintPair
-import com.github.pvoid.androidbp.module.sdk.aospSdkData
-import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionProvider
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 
@@ -39,11 +40,8 @@ class BlueprintVariableValueCompletionProvider : CompletionProvider<CompletionPa
 
     private fun addLibrariesCompletion(parameters: CompletionParameters, result: CompletionResultSet) {
         val project = parameters.editor.project ?: return
-        val manager = ProjectRootManager.getInstance(project)
 
-        val data = manager.projectSdk?.aospSdkData ?: return
-
-        data.projects.keys.forEach {
+        BlueprintsTable.getInstance(project).availableBlueprints().forEach {
             result.addElement(LookupElementBuilder.create(it).withInsertHandler(mLibraryInsertHandler))
         }
     }
