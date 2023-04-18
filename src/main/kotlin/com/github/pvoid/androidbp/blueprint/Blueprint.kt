@@ -127,15 +127,18 @@ class Blueprint(
         }
 
         // Standard libraries
-        if (scope == DependenciesScope.All && members["no_standard_libs"] as? Boolean != true) {
+        if (scope == DependenciesScope.All) {
             if (type in ANDROID_TYPES) {
                 result.add("framework")
                 result.add("framework-res")
-                result.add("core-all")
+                if (members["no_standard_libs"] as? Boolean != true) {
+                    result.add("core-all")
+                }
                 result.add("kotlin-stdlib")
             } else if (type in JAVA_TYPES) {
-                // TODO: Skip core libraries if blueprint says so
-                result.add("core-all")
+                if (members["no_standard_libs"] as? Boolean != true) {
+                    result.add("core-all")
+                }
                 result.add("kotlin-stdlib")
             }
         }

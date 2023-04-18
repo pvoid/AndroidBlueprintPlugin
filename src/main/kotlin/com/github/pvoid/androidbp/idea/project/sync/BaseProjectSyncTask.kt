@@ -33,7 +33,9 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
@@ -119,42 +121,39 @@ internal abstract class BaseProjectSyncTask(
         val facetsModel = facetsManager.createModifiableModel()
 
         return WriteAction.computeAndWait<List<AndroidFacet>, Throwable> {
+            // TODO: Drop existing facets
             blueprints.filter {
                 it.type == BlueprintType.AndroidApp || it.type == BlueprintType.AndroidLibrary
             }.mapNotNull { blueprint ->
-                blueprint.packageName()?.let {
-                    it to blueprint
-                }
-            }.mapNotNull { (packageName, blueprint) ->
-                facetsManager.getFacetsByType(AndroidFacet.ID).firstOrNull { facet ->
-                    facet.properties.CUSTOM_MANIFEST_PACKAGE == packageName
+                val facet = facetsManager.getFacetsByType(AndroidFacet.ID).firstOrNull { facet ->
+                    facet.name == blueprint.name
                 } ?: module?.let {
-                    createAndroidFacet(it, facetsModel, packageName, blueprint.type == BlueprintType.AndroidApp)
+                    createAndroidFacet(it, facetsModel, blueprint.name)
                 }
-            }.map {
-                facetsManager.facetConfigurationChanged(it)
-                it
+                facet?.let {
+                    blueprint to it
+                }
+            }.map { (blueprint, facet) ->
+                // Despite all deprecation the property is used to build up local resources
+                // cache
+                facet.properties.RES_FOLDERS_RELATIVE_PATH = blueprint.resources(false).joinToString(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+                    VfsUtilCore.pathToUrl(file)
+                }
+                facetsManager.facetConfigurationChanged(facet)
+                facet
             }.also {
                 facetsModel.commit()
             }
         }
     }
 
-    private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel, packageName: String, isApp: Boolean): AndroidFacet {
+    private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel, name: String): AndroidFacet {
         val facetType = AndroidFacet.getFacetType()
         val configuration = facetType.createDefaultConfiguration()
 
         @Suppress("DEPRECATION")
         configuration.state.ALLOW_USER_CONFIGURATION = false
-        configuration.state.GEN_FOLDER_RELATIVE_PATH_APT = "/.idea/cache/gen/"
-        configuration.state.GEN_FOLDER_RELATIVE_PATH_AIDL = "/.idea/cache/gen/"
-        configuration.state.RES_FOLDER_RELATIVE_PATH = null
-        configuration.state.RES_FOLDERS_RELATIVE_PATH = null
-        configuration.state.ASSETS_FOLDER_RELATIVE_PATH = null
-        configuration.state.MANIFEST_FILE_RELATIVE_PATH = null
-        configuration.state.CUSTOM_MANIFEST_PACKAGE = packageName
-        configuration.state.PROJECT_TYPE = if (isApp) AndroidProjectTypes.PROJECT_TYPE_APP else AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-        val facet = facetType.createFacet(module, AndroidFacet.NAME, configuration, null)
+        val facet = facetType.createFacet(module, name, configuration, null)
         facetModel.addFacet(facet)
         return facet
     }

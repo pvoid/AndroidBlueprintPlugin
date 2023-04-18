@@ -49,11 +49,17 @@ class BlueprintProjectSystem(
         BlueprintSyncManager(project, aospRoot)
     }
 
+    private val psiElementFinders = listOf<PsiElementFinder>(
+        AndroidInnerClassFinder.INSTANCE,
+        AndroidManifestClassPsiElementFinder.getInstance(project),
+        AndroidResourceClassPsiElementFinder(getLightResourceClassService()),
+    )
+
     override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> {
         val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
         return androidFacets.filter {
             val blueprint = (it.getModuleSystem() as? BlueprintModuleSystem)?.blueprintByPackageName(packageName)
-            blueprint != null && it.properties.CUSTOM_MANIFEST_PACKAGE == packageName
+            blueprint != null && it.name == blueprint.name
         }
     }
 
@@ -97,13 +103,7 @@ class BlueprintProjectSystem(
 
     override fun getPathToAapt(): Path = File(aospRoot, "prebuilts/sdk/tools/linux/bin/aapt").toPath()
 
-    override fun getPsiElementFinders(): Collection<PsiElementFinder> {
-        return listOf(
-            AndroidInnerClassFinder.INSTANCE,
-            AndroidManifestClassPsiElementFinder.getInstance(project),
-            AndroidResourceClassPsiElementFinder(getLightResourceClassService())
-        )
-    }
+    override fun getPsiElementFinders(): Collection<PsiElementFinder> = psiElementFinders
 
     override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactory
 

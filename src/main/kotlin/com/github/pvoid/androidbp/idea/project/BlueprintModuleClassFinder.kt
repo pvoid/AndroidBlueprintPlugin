@@ -42,9 +42,7 @@ class BlueprintModuleClassFinder(
         }.mapNotNull {
             it.toVirtualFile()
         }.firstNotNullOfOrNull {
-            findClassFileInOutputRoot(it, fqcn).also {
-                LOG.warn("Class: $fqcn found in ${it?.url}")
-            }
+            findClassFileInOutputRoot(it, fqcn)
         }
     }
 
