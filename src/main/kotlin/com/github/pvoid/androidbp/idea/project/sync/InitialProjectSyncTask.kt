@@ -8,6 +8,7 @@ package com.github.pvoid.androidbp.idea.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.ResourceUpdateTraceSettings
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
@@ -24,7 +25,11 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.roots.LanguageLevelModuleExtension
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
@@ -56,19 +61,25 @@ internal class InitialProjectSyncTask (
         indicator.text = "Updating project blueprints..."
         indicator.isIndeterminate = true
         updateProjectBlueprints()
-        updateSourceRoots()
 
         indicator.text = "Updating project dependencies..."
         indicator.isIndeterminate = true
         updateJavaDependencies(aospRoot)
         updateAndroidDependencies(aospRoot)
-        updateProjectFacets().forEach { facet ->
+        val facets = updateProjectFacets()
+
+        indicator.text = "Updating source roots..."
+        indicator.isIndeterminate = true
+        updateSourceRoots()
+
+        facets.forEach { facet ->
             BlueprintAndroidModel.register(facet)
-//            fixLayoutLibrary(facet)
             ResourceRepositoryManager.getInstance(facet).resetAllCaches()
         }
 
         listener(ProjectSystemSyncManager.SyncResult.SUCCESS)
+
+        ResourceUpdateTraceSettings.getInstance().enabled = true
     }
 
     private fun setUpJdk(): Boolean {
@@ -99,6 +110,15 @@ internal class InitialProjectSyncTask (
                 commitChanges()
             }
 
+            module?.apply {
+                ModuleRootManager.getInstance(this).modifiableModel.apply{
+                    getModuleExtension(
+                        LanguageLevelModuleExtension::class.java
+                    ).languageLevel = LanguageLevel.JDK_1_8
+                    commit()
+                }
+            }
+
             true
         }
     }
@@ -118,28 +138,4 @@ internal class InitialProjectSyncTask (
             }
         }).notify(project)
     }
-
-    private fun showInvalidBlueprintLocation() {
-        NotificationGroupManager.getInstance().getNotificationGroup("AOSP Blueprint").createNotification(
-            "AOSP Blue Plugin",
-            "Blueprint parent folder doesn't look like AOSP source code",
-            NotificationType.WARNING
-        ).notify(project)
-    }
-
-    /*
-    private fun fixLayoutLibrary(facet: AndroidFacet) {
-        val data = AndroidSdkData.getSdkData(facet) ?: return
-        data.targets.forEach { target ->
-            try {
-                val compatTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
-                data.getTargetData(compatTarget).getLayoutLibrary(project)
-            } catch (e: UnsatisfiedLinkError) {
-                LOG.error("Can't load layout library", e)
-            } catch (e: Throwable) {
-                LOG.error("Can't load layout library", e)
-            }
-        }
-    }
- */
 }

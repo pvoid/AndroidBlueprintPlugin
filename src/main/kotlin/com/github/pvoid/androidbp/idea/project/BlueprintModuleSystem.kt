@@ -8,12 +8,9 @@ package com.github.pvoid.androidbp.idea.project
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.util.PathString
-import com.android.ide.common.util.toPathString
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.projectmodel.ExternalLibraryImpl
 import com.android.tools.idea.navigator.getSubmodules
-import com.android.tools.idea.project.ModuleBasedClassFileFinder
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -23,13 +20,9 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.res.AndroidDependenciesCache
 import com.github.pvoid.androidbp.blueprint.Blueprint
-import com.github.pvoid.androidbp.idea.LOG
-import com.intellij.ProjectTopics
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
@@ -109,7 +102,7 @@ class BlueprintModuleSystem(
     override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
     override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
-        return module.getModuleWithDependenciesAndLibrariesScope(false)
+        return GlobalSearchScope.allScope(module.project)
     }
 
     override val applicationRClassConstantIds: Boolean = false
