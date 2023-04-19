@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 import java.nio.file.Files
 
@@ -173,6 +174,40 @@ object LibrariesTools {
             )
         } else {
             null
+        }
+    }
+
+    fun createAidlGenLibrary(project: Project, table: LibraryTable, blueprint: Blueprint): Library? {
+        val aospRoot = project.guessAospRoot() ?: return null
+
+        val aidls = blueprint.aidl_includes().map { aidl ->
+            val src = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/gen/aidl/${blueprint.relativePath}").parent.let {
+                File(it, aidl)
+            }
+            val cls = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/javac/classes/")
+            cls to src
+        }
+
+        if (aidls.isEmpty()) {
+            return null
+        }
+
+        return WriteAction.computeAndWait<Library, Throwable> {
+            val name = "${blueprint.name}-aidl-gen"
+            val lib = table.getLibraryByName(name) ?: table.createLibrary(name)
+            lib.modifiableModel.apply {
+                aidls.forEach { (cls, src) ->
+                    cls.toVirtualFile()?.let {
+                        this.addRoot(it, OrderRootType.CLASSES)
+                    }
+                    src.toVirtualFile()?.let {
+                        this.addRoot(it, OrderRootType.SOURCES)
+                    }
+                }
+                commit()
+            }
+
+            lib
         }
     }
 

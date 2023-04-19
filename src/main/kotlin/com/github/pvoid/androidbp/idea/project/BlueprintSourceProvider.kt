@@ -24,8 +24,17 @@ class BlueprintSourceProvider(
     private val manifest: VirtualFile,
 ) : NamedIdeaSourceProvider {
 
-    override val aidlDirectories: Iterable<VirtualFile>
-        get() = emptyList() // TODO:
+    override val aidlDirectories: Iterable<VirtualFile> get() {
+        return moduleSystem.blueprints.filter {
+            it.isAndroidProject() || it.isJavaProject()
+        }.flatMap { blueprint ->
+            blueprint.aidl_includes().map {
+                File(blueprint.path, it)
+            }
+        }.mapNotNull {
+            it.toVirtualFile()
+        }
+    }
     override val aidlDirectoryUrls: Iterable<String>
         get() = aidlDirectories.map { it.url }
 

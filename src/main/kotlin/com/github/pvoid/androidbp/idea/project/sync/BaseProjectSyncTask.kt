@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.jps.model.java.JavaResourceRootType
+import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
@@ -201,7 +202,11 @@ internal abstract class BaseProjectSyncTask(
         // Drop old libs
         dependencies.values.mapNotNull { blueprint ->
             LibrariesTools.createLibrary(libraryTable, blueprint, table, aospRoot)
-        }.map { lib ->
+        }.plus(
+            blueprints.mapNotNull { blueprint ->
+                LibrariesTools.createAidlGenLibrary(project, libraryTable, blueprint)
+            }
+        ).map { lib ->
             model.findLibraryOrderEntry(lib) ?: model.addLibraryEntry(lib)
         }.forEach {
             it.isExported = true
@@ -270,6 +275,14 @@ internal abstract class BaseProjectSyncTask(
         } ?: return
         val entry = model.contentEntries.first()
         WriteAction.runAndWait<Throwable> {
+            // Drop existing entries
+            entry.sourceFolders.filter {
+                it.rootType == JavaResourceRootType.RESOURCE || it.rootType == JavaSourceRootType.SOURCE
+            }.forEach {
+                entry.removeSourceFolder(it)
+            }
+
+            // resources
             blueprints.flatMap {
                 it.resources(false)
             }.mapNotNull {
@@ -277,6 +290,16 @@ internal abstract class BaseProjectSyncTask(
             }.forEach { path ->
                 entry.addSourceFolder(path, JavaResourceRootType.RESOURCE)
             }
+
+            // source code
+            blueprints.flatMap {
+                it.sources(false)
+            }.mapNotNull {
+                File(it).toVirtualFile()
+            }.forEach { path ->
+                entry.addSourceFolder(path, JavaSourceRootType.SOURCE)
+            }
+
             model.commit()
         }
     }

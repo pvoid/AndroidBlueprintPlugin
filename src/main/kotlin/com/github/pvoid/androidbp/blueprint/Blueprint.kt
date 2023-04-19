@@ -40,7 +40,7 @@ class Blueprint(
     val name: String,
     val type: String,
     private val members: Map<String, Any>,
-    private val path: File,
+    val path: File,
     private val relativePath_: String
 ) {
     private var packageName: PackageNameCache? = null
@@ -226,6 +226,11 @@ class Blueprint(
 
     fun assets(relative: Boolean = true): List<String> = when (type) {
         BlueprintType.AndroidApp, BlueprintType.AndroidLibrary -> members["asset_dirs"]?.toSourcePaths(if (relative) relativePath_ else path.absolutePath) ?: emptyList()
+        else -> emptyList()
+    }
+
+    fun aidl_includes(): List<String> = when (type) {
+        BlueprintType.AndroidApp -> (members["aidl"] as? Map<*, *>)?.get("local_include_dirs")?.toStringList() ?: emptyList()
         else -> emptyList()
     }
 
