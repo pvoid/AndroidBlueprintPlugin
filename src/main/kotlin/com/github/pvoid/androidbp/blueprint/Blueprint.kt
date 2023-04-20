@@ -123,7 +123,7 @@ class Blueprint(
         // Hack-in some hardcoded dependencies
         when (name) {
             // services.core has framework classes injected
-            "services.core.priorityboosted" -> { result.add("framework") }
+            "services.core" -> { result.add("framework") }
         }
 
         // Standard libraries
