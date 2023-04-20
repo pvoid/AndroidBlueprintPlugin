@@ -81,7 +81,6 @@ class BlueprintSourceProvidersFactory : SourceProvidersFactory {
         } ?: return emptyProvider
 
         val cached = cachedProviders.getOrPut(facet) {
-            // TODO: One per manifest
             val provider = BlueprintSourceProvider(name, ScopeType.MAIN, moduleSystem, manifest)
             BlueprintSourceProviders(provider)
         }

@@ -122,7 +122,6 @@ internal abstract class BaseProjectSyncTask(
         val facetsModel = facetsManager.createModifiableModel()
 
         return WriteAction.computeAndWait<List<AndroidFacet>, Throwable> {
-            // TODO: Drop existing facets
             blueprints.filter {
                 it.type == BlueprintType.AndroidApp || it.type == BlueprintType.AndroidLibrary
             }.mapNotNull { blueprint ->
@@ -142,7 +141,11 @@ internal abstract class BaseProjectSyncTask(
                 }
                 facetsManager.facetConfigurationChanged(facet)
                 facet
-            }.also {
+            }.also { facets ->
+                facetsModel.getFacetsByType(AndroidFacet.ID).filterNot { facet ->
+                    facets.any { it.name == facet.name }
+                }.forEach(facetsModel::removeFacet)
+
                 facetsModel.commit()
             }
         }
