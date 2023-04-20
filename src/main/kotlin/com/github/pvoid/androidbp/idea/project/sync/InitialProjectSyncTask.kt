@@ -56,7 +56,7 @@ internal class InitialProjectSyncTask (
         indicator.text = "Parsing blueprints..."
         val blueprints = parseBlueprints(indicator, aospRoot, blueprintFiles)
 
-        BlueprintsTable.getInstance(project).update(blueprintFiles, blueprints)
+        BlueprintsTable.getInstance(project).update(blueprints)
 
         indicator.text = "Updating project blueprints..."
         indicator.isIndeterminate = true

@@ -36,22 +36,19 @@ class BlueprintsTable(project: Project) {
 
     private val aospRoot: File? = project.guessAospRoot()
 
-    private var files = emptyList<File>()
-
     private var blueprints = emptyMap<String, File>()
 
     private val cache = mutableMapOf<File, BlueprintsTableCacheItem>()
 
-    @Synchronized
-    fun update(files: List<File>, blueprints: Map<String, File>) {
-        files.forEach {
-            VirtualFileManager.getInstance().findFileByNioPath(it.toPath())
+    fun update(blueprints: Map<String, File>) {
+        synchronized(this) {
+            this.blueprints = blueprints
         }
-        this.files = files
-        this.blueprints = blueprints
     }
 
-    fun availableBlueprints(): Collection<String> = blueprints.keys
+    fun availableBlueprints(): Collection<String> = synchronized(this) {
+        blueprints.keys.toList()
+    }
 
     operator fun get(name: String): Blueprint? {
         val fixedName = fixUpName(name)
@@ -88,6 +85,34 @@ class BlueprintsTable(project: Project) {
             }
         }
         return blueprints
+    }
+
+    fun update(file: File) {
+        if (aospRoot == null) {
+            return
+        }
+
+        val blueprints = parse(aospRoot, file, mutableListOf())
+        synchronized(this) {
+            if (blueprints.isNotEmpty()) {
+                cache[file] = BlueprintsTableCacheItem(file.lastModified(), blueprints)
+            } else {
+                cache.remove(file)
+            }
+
+            val newList = mutableMapOf<String, File>()
+            this.blueprints.asSequence().filterNot { (_, src) ->
+                src == file
+            }.forEach { (name, src) ->
+                newList[name] = src
+            }
+
+            blueprints.forEach {
+                newList[it.name] = file
+            }
+
+            this.blueprints = newList
+        }
     }
 
     private fun fixUpName(name: String): String {
