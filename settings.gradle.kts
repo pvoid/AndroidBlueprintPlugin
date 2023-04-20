@@ -4,4 +4,4 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-rootProject.name = "androidbp"
+rootProject.name = "AndroidBluePrint"
