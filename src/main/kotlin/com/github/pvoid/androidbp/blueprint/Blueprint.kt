@@ -140,6 +140,9 @@ class Blueprint(
                     result.add("core-all")
                 }
                 result.add("kotlin-stdlib")
+            } else if (type == "aidl_interface" || type =="java_sdk_library") {
+                result.add("framework")
+                result.add("core-all")
             }
         }
 
