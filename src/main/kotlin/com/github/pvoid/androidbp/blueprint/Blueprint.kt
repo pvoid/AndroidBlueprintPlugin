@@ -16,13 +16,25 @@ object BlueprintType {
     const val AndroidApp = "android_app"
     const val AndroidLibrary = "android_library"
     const val AndroidImport = "android_library_import"
+    const val JavaBinary = "java_binary"
+    const val JavaBinaryHost = "java_binary_host"
+    const val JavaLibrary = "java_library"
+    const val JavaLibraryHost = "java_library_host"
+    const val JavaLibraryStatic = "java_library_static"
+    const val JavaSdk = "java_sdk_library"
+    const val JavaImport = "java_import"
+    const val JavaImportHost = "java_import_host"
+    const val SyspropLibrary = "sysprop_library"
+    const val AidlInterface = "aidl_interface"
+    const val HidlInterface = "hidl_interface"
 }
 
 private val ANDROID_TYPES = arrayOf(BlueprintType.AndroidApp, BlueprintType.AndroidLibrary, "android_test", "android_test_helper_app")
 private val ANDROID_IMPORT_TYPES = arrayOf(BlueprintType.AndroidImport)
-private val JAVA_TYPES = arrayOf("java_binary", "java_binary_host", "java_library", "java_library_host",
-    "java_library_static", "java_plugin", "java_sdk_library", "java_test", "java_test_helper_library", "java_defaults")
-private val JAVA_IMPORT_TYPES = arrayOf("java_import", "java_import_host")
+private val JAVA_TYPES = arrayOf(BlueprintType.JavaBinary, BlueprintType.JavaBinaryHost, BlueprintType.JavaLibrary,
+    BlueprintType.JavaLibraryHost, BlueprintType.JavaLibraryStatic, "java_plugin", BlueprintType.JavaSdk,
+    "java_test", "java_test_helper_library", "java_defaults")
+private val JAVA_IMPORT_TYPES = arrayOf(BlueprintType.JavaImport, BlueprintType.JavaImportHost)
 
 private class PackageNameCache(
     val packageName: String,
@@ -140,7 +152,7 @@ class Blueprint(
                     result.add("core-all")
                 }
                 result.add("kotlin-stdlib")
-            } else if (type == "aidl_interface" || type =="java_sdk_library") {
+            } else if (type == BlueprintType.AidlInterface || type == BlueprintType.JavaSdk) {
                 result.add("framework")
                 result.add("core-all")
             }
@@ -172,18 +184,19 @@ class Blueprint(
             }
             listOf(path)
         }
-        "java_library", "java_sdk_library", "sysprop_library" -> {
+        BlueprintType.JavaLibrary, BlueprintType.JavaLibraryStatic, BlueprintType.JavaLibraryHost,
+        BlueprintType.JavaSdk, BlueprintType.SyspropLibrary -> {
             var path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
             if (!path.exists()) {
                 path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
             }
             listOf(path)
         }
-        "java_import" -> {
+        BlueprintType.JavaImport, BlueprintType.JavaImportHost -> {
             members["jars"]?.toStringList()?.map { File(path, it) } ?: emptyList()
         }
-        "aidl_interface" -> listOf(File(rootPath, "$relativePath_/$name-java/android_common/turbine-combined/$name-java.jar"))
-        "hidl_interface" -> {
+        BlueprintType.AidlInterface -> listOf(File(rootPath, "$relativePath_/$name-java/android_common/turbine-combined/$name-java.jar"))
+        BlueprintType.HidlInterface -> {
             val parts = name.split('@')
             if (parts.size != 2) {
                 emptyList()
@@ -199,8 +212,8 @@ class Blueprint(
     }
 
     fun generatedSources(): List<String> = when (type) {
-        "aidl_interface" -> listOf("$relativePath_/$name-java-source/gen/")
-        "hidl_interface" -> {
+        BlueprintType.AidlInterface -> listOf("$relativePath_/$name-java-source/gen/")
+        BlueprintType.HidlInterface -> {
             val parts = name.split('@')
             if (parts.size != 2) {
                 emptyList()
@@ -208,7 +221,7 @@ class Blueprint(
                 listOf("$relativePath_/${parts[0]}-V${parts[1]}-java_gen_java/gen/srcs/")
             }
         }
-        "sysprop_library" -> {
+        BlueprintType.SyspropLibrary -> {
             val path = "$relativePath_/$name/android_common/gen/sysprop/$relativePath_/"
             members["api_packages"]?.toStringList()?.map {
                 "$path/$it.srcjar"
