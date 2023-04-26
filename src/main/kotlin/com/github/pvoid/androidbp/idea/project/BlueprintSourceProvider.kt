@@ -8,12 +8,8 @@ package com.github.pvoid.androidbp.idea.project
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 
@@ -28,7 +24,7 @@ class BlueprintSourceProvider(
         return moduleSystem.blueprints.filter {
             it.isAndroidProject() || it.isJavaProject()
         }.flatMap { blueprint ->
-            blueprint.aidl_includes().map {
+            blueprint.aidl_includes_local().map {
                 File(blueprint.path, it)
             }
         }.mapNotNull {

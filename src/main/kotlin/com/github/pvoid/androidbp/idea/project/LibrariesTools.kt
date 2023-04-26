@@ -9,15 +9,12 @@ package com.github.pvoid.androidbp.idea.project
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.projectmodel.ResourceFolder
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
 import com.github.pvoid.androidbp.blueprint.DependenciesScope
-import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.Library
@@ -180,12 +177,20 @@ object LibrariesTools {
     fun createAidlGenLibrary(project: Project, table: LibraryTable, blueprint: Blueprint): Library? {
         val aospRoot = project.guessAospRoot() ?: return null
 
-        val aidls = blueprint.aidl_includes().map { aidl ->
+        val aidls = blueprint.aidl_includes_local().mapNotNull { aidl ->
             val src = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/gen/aidl/${blueprint.relativePath}").parent.let {
                 File(it, aidl)
             }
             val cls = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/javac/classes/")
-            cls to src
+            cls.toVirtualFile()?.let {
+                it to src
+            }
+        } + blueprint.aidl_includes_global().mapNotNull { aidl ->
+            val src = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/gen/aidl/$aidl")
+            val cls = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/javac/${blueprint.name}.jar")
+            cls.toJarFileUrl()?.let {
+                it to src
+            }
         }
 
         if (aidls.isEmpty()) {
@@ -197,9 +202,8 @@ object LibrariesTools {
             val lib = table.getLibraryByName(name) ?: table.createLibrary(name)
             lib.modifiableModel.apply {
                 aidls.forEach { (cls, src) ->
-                    cls.toVirtualFile()?.let {
-                        this.addRoot(it, OrderRootType.CLASSES)
-                    }
+                    this.addRoot(cls, OrderRootType.CLASSES)
+
                     src.toVirtualFile()?.let {
                         this.addRoot(it, OrderRootType.SOURCES)
                     }

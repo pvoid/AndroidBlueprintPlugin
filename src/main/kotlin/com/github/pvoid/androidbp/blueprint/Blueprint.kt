@@ -245,8 +245,13 @@ class Blueprint(
         else -> emptyList()
     }
 
-    fun aidl_includes(): List<String> = when (type) {
+    fun aidl_includes_local(): List<String> = when (type) {
         BlueprintType.AndroidApp -> (members["aidl"] as? Map<*, *>)?.get("local_include_dirs")?.toStringList() ?: emptyList()
+        else -> emptyList()
+    }
+
+    fun aidl_includes_global(): List<String> = when (type) {
+        BlueprintType.AndroidApp, BlueprintType.AndroidLibrary, BlueprintType.JavaLibraryStatic -> (members["aidl"] as? Map<*, *>)?.get("include_dirs")?.toStringList() ?: emptyList()
         else -> emptyList()
     }
 
