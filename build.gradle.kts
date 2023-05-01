@@ -20,7 +20,7 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.1")
+    version.set("2023.1.1")
     type.set("IC")
 
     plugins.set(listOf("java", "android"))
@@ -43,9 +43,9 @@ tasks {
         untilBuild.set("231.*")
         changeNotes.set("""
         <ul>
-            <li>Add IDEA 2023.1 support</li>
-            <li>Improve dependencies scanning</li>
-            <li>Fix Android project view pane</li>
+            <li>Improve AIDL support</li>
+            <li>Improve compatibility with built-in android support</li>
+            <li>Fix project update on project blueprint changes</li>
         </ul>
         """.trimIndent())
 
