@@ -9,15 +9,9 @@ package com.github.pvoid.androidbp.idea.project.sync
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
-import com.github.pvoid.androidbp.blueprint.Blueprint
-import com.github.pvoid.androidbp.blueprint.BlueprintType
-import com.github.pvoid.androidbp.blueprint.BlueprintsTable
-import com.github.pvoid.androidbp.blueprint.DependenciesScope
+import com.github.pvoid.androidbp.blueprint.*
 import com.github.pvoid.androidbp.idea.LOG
-import com.github.pvoid.androidbp.idea.project.AndroidDependencyRecord
-import com.github.pvoid.androidbp.idea.project.BlueprintModuleSystem
-import com.github.pvoid.androidbp.idea.project.LibrariesTools
-import com.github.pvoid.androidbp.idea.project.getProjectBlueprint
+import com.github.pvoid.androidbp.idea.project.*
 import com.intellij.facet.FacetManager
 import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.application.ReadAction
@@ -27,7 +21,6 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModifiableRootModel
@@ -48,29 +41,43 @@ internal abstract class BaseProjectSyncTask(
     title: String
 ) : Task.ConditionalModal(project, title, false, ALWAYS_BACKGROUND) {
 
-    protected val blueprintFile: File? by lazy {
+    private val blueprintFile: File? by lazy {
         project.getProjectBlueprint()
     }
 
+    private val katiMakefile: File? by lazy {
+        project.getProjectMakefile()
+    }
+
     protected val module: Module? by lazy {
-        blueprintFile?.toVirtualFile()?.let {
+        (blueprintFile ?: katiMakefile)?.toVirtualFile()?.let {
             ModuleUtil.findModuleForFile(it, project)
         }
     }
 
     protected val blueprints: List<Blueprint> by lazy {
         val table = BlueprintsTable.getInstance(project)
-        blueprintFile?.let(table::parse)?: emptyList()
+        val bp = blueprintFile
+        val mk = katiMakefile
+        when {
+            bp != null -> table.parse(bp)
+            mk != null -> project.guessAospRoot()?.let { Makefile.parse(mk, it) } ?: emptyList()
+            else -> emptyList()
+        }
     }
 
-    protected fun collectBlueprintFiles(root: File): List<File> {
+    protected fun collectBlueprintFiles(root: File): List<File> = collectFiles(root, Blueprint.DEFAULT_NAME)
+
+    protected fun collectKatiFiles(root: File): List<File> = collectFiles(root, Makefile.DEFAULT_NAME)
+
+    private fun collectFiles(root: File, name: String): List<File> {
         val folders = mutableListOf(root)
         val result = mutableListOf<File>()
 
         while (folders.isNotEmpty()) {
             folders.pop().listFiles()?.forEach { entry ->
                 if (entry.isFile) {
-                    if (entry.name == Blueprint.DEFAULT_NAME) {
+                    if (entry.name == name) {
                         result.add(entry)
                     }
                 } else if (entry.isDirectory) {
@@ -109,6 +116,19 @@ internal abstract class BaseProjectSyncTask(
         }
 
         return result
+    }
+
+    protected fun parseMakefiles(indicator: ProgressIndicator, aospRoot: File, files: List<File>): Map<String, File> {
+        var processed = 0
+
+        return files.flatMap { file ->
+            Makefile.parse(file, aospRoot).map {
+                it.name to file
+            }.also {
+                ++processed
+                indicator.fraction = processed.toDouble() / files.size
+            }
+        }.toMap()
     }
 
     protected fun updateProjectBlueprints(): List<Blueprint> {

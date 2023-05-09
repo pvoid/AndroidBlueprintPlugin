@@ -10,6 +10,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.github.pvoid.androidbp.blueprint.Blueprint
+import com.github.pvoid.androidbp.blueprint.Makefile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import java.io.File
@@ -42,7 +43,7 @@ class BlueprintProjectSystemProvider(
         val root = project.guessProjectDir() ?: return false
 
         return aospRoot != null && root.children.asSequence().any {
-            !it.isDirectory && it.isValid && it.name == Blueprint.DEFAULT_NAME
+            !it.isDirectory && it.isValid && (it.name == Blueprint.DEFAULT_NAME || it.name == Makefile.DEFAULT_NAME)
         }
     }
 }

@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.github.pvoid.androidbp.next"
-version = "1.0.0-RC8"
+version = "1.0.0-RC9"
 
 repositories {
     mavenCentral()

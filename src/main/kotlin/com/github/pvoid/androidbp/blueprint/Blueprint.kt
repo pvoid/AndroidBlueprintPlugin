@@ -53,7 +53,8 @@ class Blueprint(
     val type: String,
     private val members: Map<String, Any>,
     val path: File,
-    private val relativePath_: String
+    private val relativePath_: String,
+    val isFromKati: Boolean,
 ) {
     private var packageName: PackageNameCache? = null
 
@@ -104,7 +105,11 @@ class Blueprint(
             return null
         }
 
-        return "$relativePath_/$name/android_common/R.txt"
+        return if (!isFromKati) {
+            "$relativePath_/$name/android_common/R.txt"
+        } else {
+            "../../target/common/obj/JAVA_LIBRARIES/${name}_intermediates/R.txt"
+        }
     }
 
     fun packageName(): String? {
@@ -178,19 +183,31 @@ class Blueprint(
 
     fun outputJars(rootPath: File): List<File> = when (type) {
         BlueprintType.AndroidLibrary -> {
-            var path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
-            if (!path.exists()) {
-                path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
+            if (!isFromKati) {
+                var path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
+                if (!path.exists()) {
+                    path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
+                }
+                listOf(path)
+            } else {
+                listOf(
+                    File(rootPath.parentFile.parentFile, "target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
+                )
             }
-            listOf(path)
         }
         BlueprintType.JavaLibrary, BlueprintType.JavaLibraryStatic, BlueprintType.JavaLibraryHost,
         BlueprintType.JavaSdk, BlueprintType.SyspropLibrary -> {
-            var path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
-            if (!path.exists()) {
-                path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
-            }
+            if (!isFromKati) {
+                var path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
+                if (!path.exists()) {
+                    path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
+                }
             listOf(path)
+            } else {
+                listOf(
+                    File(rootPath.parentFile.parentFile, "target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
+                )
+            }
         }
         BlueprintType.JavaImport, BlueprintType.JavaImportHost -> {
             members["jars"]?.toStringList()?.map { File(path, it) } ?: emptyList()
@@ -257,12 +274,13 @@ class Blueprint(
 
     companion object {
         const val DEFAULT_NAME = "Android.bp"
+        const val DEFAULT_EXTENSION = "bp"
 
         fun create(type: String, members: Map<String, Any>, path: File, root: File): Blueprint? {
             val name = members["name"] as? String ?: return null
             val relativePath = FileUtil.getRelativePath(root, path) ?: return null
 
-            return Blueprint(name, type, members, path, relativePath)
+            return Blueprint(name, type, members, path, relativePath, false)
         }
     }
 }

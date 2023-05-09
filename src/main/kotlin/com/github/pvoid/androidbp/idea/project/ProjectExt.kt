@@ -8,6 +8,7 @@ package com.github.pvoid.androidbp.idea.project
 
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.blueprint.Blueprint
+import com.github.pvoid.androidbp.blueprint.Makefile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import java.io.File
@@ -43,6 +44,16 @@ fun Project.getProjectBlueprint(): File? {
     val blueprintFile = File(path.toIoFile(), Blueprint.DEFAULT_NAME)
     return if (blueprintFile.exists()) {
         blueprintFile
+    } else {
+        null
+    }
+}
+
+fun Project.getProjectMakefile(): File? {
+    val path = guessProjectDir() ?: return null
+    val makefile = File(path.toIoFile(), Makefile.DEFAULT_NAME)
+    return if (makefile.exists()) {
+        makefile
     } else {
         null
     }
