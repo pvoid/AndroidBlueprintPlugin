@@ -43,9 +43,7 @@ tasks {
         untilBuild.set("231.*")
         changeNotes.set("""
         <ul>
-            <li>Improve AIDL support</li>
-            <li>Improve compatibility with built-in android support</li>
-            <li>Fix project update on project blueprint changes</li>
+            <li>Build modules from Android.mk files</li>
         </ul>
         """.trimIndent())
 
