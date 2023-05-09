@@ -78,13 +78,17 @@ class BlueprintsTable(project: Project) {
             return emptyList()
         }
 
-        val blueprints = parse(aospRoot, file, mutableListOf())
-        if (blueprints.isNotEmpty()) {
-            synchronized(this) {
-                cache[file] = BlueprintsTableCacheItem(timestamp, blueprints)
+        return (if (file.extension == Blueprint.DEFAULT_EXTENSION) {
+            parse(aospRoot, file, mutableListOf())
+        } else {
+            Makefile.parse(file, aospRoot)
+        }).also { blueprints ->
+            if (blueprints.isNotEmpty()) {
+                synchronized(this) {
+                    cache[file] = BlueprintsTableCacheItem(timestamp, blueprints)
+                }
             }
         }
-        return blueprints
     }
 
     fun update(file: File) {

@@ -53,10 +53,17 @@ internal class InitialProjectSyncTask (
         indicator.isIndeterminate = true
         val blueprintFiles = collectBlueprintFiles(aospRoot)
 
+        indicator.text = "Collecting makefiles..."
+        indicator.isIndeterminate = true
+        val katiFiles = collectKatiFiles(aospRoot)
+
         indicator.text = "Parsing blueprints..."
         val blueprints = parseBlueprints(indicator, aospRoot, blueprintFiles)
 
-        BlueprintsTable.getInstance(project).update(blueprints)
+        indicator.text = "Parsing makefiles..."
+        val makefiles = parseMakefiles(indicator, aospRoot, katiFiles)
+
+        BlueprintsTable.getInstance(project).update(blueprints + makefiles)
 
         indicator.text = "Updating project blueprints..."
         indicator.isIndeterminate = true
