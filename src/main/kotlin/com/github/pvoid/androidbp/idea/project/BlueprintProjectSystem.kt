@@ -66,28 +66,22 @@ class BlueprintProjectSystem(
     override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
     override fun getClassJarProvider(): ClassJarProvider {
-        return object: ClassJarProvider {
-            override fun getModuleExternalLibraries(module: Module): List<File> {
-                val result = mutableListOf<File>()
-                moduleSystems[module]?.dependenciesJars()?.foldRight(result) { jar, r ->
+        return ClassJarProvider { module ->
+            val result = mutableListOf<File>()
+            moduleSystems[module]?.dependenciesJars()?.foldRight(result) { jar, r ->
+                r.add(jar)
+                r
+            }
+
+            AndroidRootUtil.getExternalLibraries(module)
+                .filterNotNull()
+                .map(VfsUtilCore::virtualToIoFile)
+                .foldRight(result) { jar, r ->
                     r.add(jar)
                     r
                 }
 
-                AndroidRootUtil.getExternalLibraries(module)
-                    .filterNotNull()
-                    .map(VfsUtilCore::virtualToIoFile)
-                    .foldRight(result) { jar, r ->
-                        r.add(jar)
-                        r
-                    }
-
-                return result
-            }
-
-            override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
-                return false
-            }
+            result
         }
     }
 
@@ -112,4 +106,7 @@ class BlueprintProjectSystem(
     }
 
     override val submodules: Collection<Module> = getSubmodules(project, null)
+
+    // TODO: Check if it woth to provide a real bootclass path i.e. out/target/product/<product>/system/framework/
+    override fun getBootClasspath(module: Module): Collection<String> = emptySet()
 }

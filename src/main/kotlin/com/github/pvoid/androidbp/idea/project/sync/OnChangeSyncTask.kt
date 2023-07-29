@@ -7,7 +7,7 @@
 package com.github.pvoid.androidbp.idea.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.github.pvoid.androidbp.idea.project.deprecated.BlueprintAndroidModel
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -35,7 +35,7 @@ internal class OnChangeSyncTask(
 
         facets.forEach { facet ->
             BlueprintAndroidModel.register(facet)
-            ResourceRepositoryManager.getInstance(facet).resetAllCaches()
+            StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
         }
 
         listener(ProjectSystemSyncManager.SyncResult.SUCCESS)

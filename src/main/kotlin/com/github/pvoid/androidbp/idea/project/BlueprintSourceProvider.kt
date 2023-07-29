@@ -95,4 +95,7 @@ class BlueprintSourceProvider(
 
     override val shadersDirectories: Iterable<VirtualFile> = emptyList()
     override val shadersDirectoryUrls: Iterable<String> = emptyList()
+
+    override val baselineProfileDirectories: Iterable<VirtualFile> = emptyList()
+    override val baselineProfileDirectoryUrls: Iterable<String> = emptyList()
 }

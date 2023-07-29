@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.github.pvoid.androidbp.next"
-version = "1.0.0-RC9"
+version = "1.0.0-RC10"
 
 repositories {
     mavenCentral()
@@ -20,7 +20,7 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.1.1")
+    version.set("2023.2")
     type.set("IC")
 
     plugins.set(listOf("java", "android"))
@@ -39,11 +39,11 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("231.*")
+        sinceBuild.set("232")
+        untilBuild.set("232.*")
         changeNotes.set("""
         <ul>
-            <li>Build modules from Android.mk files</li>
+            <li>Add IDEA 2023.2 support</li>
         </ul>
         """.trimIndent())
 

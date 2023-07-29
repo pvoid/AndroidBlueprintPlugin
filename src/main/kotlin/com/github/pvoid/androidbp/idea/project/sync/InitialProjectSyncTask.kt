@@ -7,8 +7,8 @@
 package com.github.pvoid.androidbp.idea.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.ResourceUpdateTraceSettings
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
@@ -27,7 +27,6 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData
@@ -81,7 +80,7 @@ internal class InitialProjectSyncTask (
 
         facets.forEach { facet ->
             BlueprintAndroidModel.register(facet)
-            ResourceRepositoryManager.getInstance(facet).resetAllCaches()
+            StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
         }
 
         listener(ProjectSystemSyncManager.SyncResult.SUCCESS)
@@ -113,7 +112,7 @@ internal class InitialProjectSyncTask (
             manager.projectSdk = sdk
 
             sdk.sdkModificator.apply {
-                this.sdkAdditionalData = AndroidSdkAdditionalData(androidSdk, sdk)
+                this.sdkAdditionalData = AndroidSdkAdditionalData(androidSdk)
                 commitChanges()
             }
 
