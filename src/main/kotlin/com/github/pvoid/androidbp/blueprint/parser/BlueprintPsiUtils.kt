@@ -16,9 +16,9 @@ import com.github.pvoid.androidbp.blueprint.psi.BlueprintMembers
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintPair
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintStringExpr
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes
+import com.github.pvoid.androidbp.trimQuotes
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.daemon.common.trimQuotes
+import java.util.*
 
 object BlueprintPsiUtils {
     @JvmStatic
@@ -40,7 +40,7 @@ object BlueprintPsiUtils {
     fun getFieldDef(element: BlueprintPair): BlueprintField? {
         val name = element.fieldName.text ?: return null
 
-        val path = mutableListOf<String>()
+        val path = Stack<String>()
         var node = element.parent
         while (node != null) {
             if (node is BlueprintBlueprint) {

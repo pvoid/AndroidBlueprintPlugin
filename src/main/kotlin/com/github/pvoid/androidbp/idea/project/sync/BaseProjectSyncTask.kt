@@ -6,9 +6,8 @@
 
 package com.github.pvoid.androidbp.idea.project.sync
 
-import com.android.AndroidProjectTypes
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.blueprint.*
 import com.github.pvoid.androidbp.idea.LOG
 import com.github.pvoid.androidbp.idea.project.*
@@ -31,10 +30,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
-import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.backend.common.push
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
+import java.util.*
 
 internal abstract class BaseProjectSyncTask(
     project: Project,
@@ -71,7 +68,9 @@ internal abstract class BaseProjectSyncTask(
     protected fun collectKatiFiles(root: File): List<File> = collectFiles(root, Makefile.DEFAULT_NAME)
 
     private fun collectFiles(root: File, name: String): List<File> {
-        val folders = mutableListOf(root)
+        val folders = Stack<File>().apply {
+            push(root)
+        }
         val result = mutableListOf<File>()
 
         while (folders.isNotEmpty()) {
@@ -94,7 +93,7 @@ internal abstract class BaseProjectSyncTask(
     protected fun parseBlueprints(indicator: ProgressIndicator, aospRoot: File, files: List<File>): Map<String, File> {
         val result = mutableMapOf<String, File>()
         val ext = mutableListOf<File>()
-        val queue = mutableListOf<File>()
+        val queue = Stack<File>()
         var total = files.size
         var processed = 0
         queue.addAll(files)
@@ -187,7 +186,7 @@ internal abstract class BaseProjectSyncTask(
             ModuleRootManager.getInstance(it).modifiableModel
         } ?: return
         val dependencies = mutableMapOf<String, Blueprint>()
-        val queue = mutableListOf<String>()
+        val queue = Stack<String>()
         val table = BlueprintsTable.getInstance(project)
 
         blueprints.flatMap { it.dependencies(DependenciesScope.All) }.toCollection(queue)

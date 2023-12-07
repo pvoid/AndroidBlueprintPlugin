@@ -105,8 +105,15 @@ class BlueprintProjectSystem(
         return syncManager
     }
 
+    override fun isNamespaceOrParentPackage(packageName: String): Boolean {
+        val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+        return androidFacets.any {
+            (it.getModuleSystem() as? BlueprintModuleSystem)?.blueprintByPackageName(packageName) != null
+        }
+    }
+
     override val submodules: Collection<Module> = getSubmodules(project, null)
 
-    // TODO: Check if it woth to provide a real bootclass path i.e. out/target/product/<product>/system/framework/
+    // TODO: Check if it worth to provide a real bootclass path i.e. out/target/product/<product>/system/framework/
     override fun getBootClasspath(module: Module): Collection<String> = emptySet()
 }

@@ -9,7 +9,6 @@ package com.github.pvoid.androidbp.blueprint
 import com.android.ide.common.xml.AndroidManifestParser
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.kotlin.backend.common.serialization.cityHash64
 import java.io.File
 
 object BlueprintType {
@@ -38,7 +37,7 @@ private val JAVA_IMPORT_TYPES = arrayOf(BlueprintType.JavaImport, BlueprintType.
 
 private class PackageNameCache(
     val packageName: String,
-    val fileName: Long,
+    val fileName: String,
     val timestamp: Long
 )
 
@@ -115,7 +114,7 @@ class Blueprint(
     fun packageName(): String? {
         val manifestFile = manifest() ?: return null
         val cache = packageName?.takeIf {
-            it.fileName == manifestFile.absolutePath.cityHash64() &&
+            it.fileName == manifestFile.absolutePath &&
             it.timestamp >= manifestFile.lastModified()
         }
 
@@ -127,7 +126,7 @@ class Blueprint(
 
         packageName = PackageNameCache(
             result.`package`,
-            manifestFile.absolutePath.cityHash64(),
+            manifestFile.absolutePath,
             manifestFile.lastModified()
         )
 

@@ -20,7 +20,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.backend.common.pop
+import java.util.Stack
 
 class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParameters>() {
 
@@ -72,7 +72,7 @@ class BlueprintFieldNameCompletionProvider : CompletionProvider<CompletionParame
     }
 
     private fun addObjectFieldCompletion(obj: BlueprintObject, used: List<String>, result: CompletionResultSet) {
-        val path = mutableListOf<String>()
+        val path = Stack<String>()
         var node = obj.parent
         while (node != null) {
             if (node is BlueprintBlueprint) {

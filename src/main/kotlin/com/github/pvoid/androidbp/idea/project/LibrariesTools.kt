@@ -11,6 +11,7 @@ import com.android.ide.common.util.toPathString
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.projectmodel.ResourceFolder
+import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
 import com.github.pvoid.androidbp.blueprint.DependenciesScope
@@ -24,10 +25,9 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 import java.nio.file.Files
+import java.util.*
 
 const val BUILD_CACHE_PATH = "out/soong/.intermediates/"
 
@@ -66,8 +66,9 @@ object LibrariesTools {
 
         val srcJars = mutableListOf<File>()
         val sources = mutableSetOf<File>()
-        val queue = mutableListOf(blueprint)
+        val queue = Stack<Blueprint>()
 
+        queue.push(blueprint)
         while (queue.isNotEmpty()) {
             val bp = queue.pop()
 

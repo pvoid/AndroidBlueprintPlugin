@@ -4,11 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-rootProject.name = "AndroidBluePrint"
+package com.github.pvoid.androidbp
 
-pluginManagement {
-    repositories {
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
-        gradlePluginPortal()
+fun String.trimQuotes(): String {
+    return if (this[0] == '\'') {
+        this.removeSurrounding("'")
+    } else {
+        this.removeSurrounding("\"")
     }
 }

@@ -15,11 +15,11 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createMergedSourceProvider
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.blueprint.BlueprintType
 import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
 private val EmptyProvider = object : NamedIdeaSourceProvider {
     override val name: String = "main"

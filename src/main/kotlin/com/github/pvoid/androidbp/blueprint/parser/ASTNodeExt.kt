@@ -15,18 +15,17 @@ import com.github.pvoid.androidbp.blueprint.psi.BlueprintObject
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintStringExpr
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintTypes
 import com.github.pvoid.androidbp.blueprint.psi.BlueprintVariable
+import com.github.pvoid.androidbp.trimQuotes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
-import org.jetbrains.kotlin.daemon.common.trimQuotes
-import org.jetbrains.kotlin.psi.psiUtil.children
 import java.io.File
 
 fun ASTNode.toBlueprints(aospRoot: File, path: File, extra: MutableList<File>?): List<Blueprint> {
     val result = mutableListOf<Blueprint>()
     val variables = mutableMapOf<String, Any>()
 
-    children().forEach { node ->
+    this.getChildren(null).forEach { node ->
         when (node.elementType) {
             BlueprintTypes.BLUEPRINT -> createBlueprint(aospRoot, node.psi as BlueprintBlueprint, path, variables)?.let(result::add)
             BlueprintTypes.VARIABLE -> createVariable(node.psi as BlueprintVariable, variables)

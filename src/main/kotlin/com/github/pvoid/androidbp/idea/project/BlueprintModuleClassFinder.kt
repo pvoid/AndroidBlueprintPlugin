@@ -9,6 +9,7 @@ package com.github.pvoid.androidbp.idea.project
 import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -17,7 +18,6 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 import java.nio.file.Paths
 

@@ -9,8 +9,8 @@ package com.github.pvoid.androidbp.idea.project
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 
 class BlueprintSourceProvider(
