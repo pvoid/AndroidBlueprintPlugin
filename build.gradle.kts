@@ -20,10 +20,10 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2023.3")
     type.set("IC")
+    version.set("2023.3.3")
 
-    plugins.set(listOf("java", "org.jetbrains.android:233.11799.264"))
+    plugins.set(listOf("java", "org.jetbrains.android:233.14015.106", "com.android.tools.design:233.13135.106"))
     downloadSources.set(true)
     updateSinceUntilBuild.set(true)
 }
@@ -39,8 +39,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("233")
-        untilBuild.set("233.*")
+        sinceBuild.set("231")
+        untilBuild.set("234.*")
         changeNotes.set("""
         <ul>
             <li>Add IDEA 2023.3 support</li>

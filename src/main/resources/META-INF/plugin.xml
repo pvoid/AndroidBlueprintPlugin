@@ -18,6 +18,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.android</depends>
+    <depends>com.android.tools.design</depends>
 
     <extensions defaultExtensionNs="com.android.project">
         <projectsystem implementation="com.github.pvoid.androidbp.idea.project.BlueprintProjectSystemProvider"/>
