@@ -23,6 +23,10 @@ fun Project.guessPlatformVersion(): Int? {
     val path = guessAospRoot() ?: return null
     val file = File(path, "build/make/core/version_defaults.mk")
 
+    if(!file.exists()) {
+        return null
+    }
+
     val line = file.readLines().firstOrNull { line ->
         line.trimStart(' ', '\t').startsWith("PLATFORM_SDK_VERSION")
     } ?: return null
