@@ -7,10 +7,11 @@
 package com.github.pvoid.androidbp.idea.project
 
 import com.android.SdkConstants
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toVirtualFile
-import com.github.pvoid.androidbp.idea.LOG
+import com.android.tools.lint.asFile
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
@@ -24,11 +25,11 @@ import java.nio.file.Paths
 class BlueprintModuleClassFinder(
     private val module: Module,
 ) : ClassFileFinder {
-    override fun findClassFile(fqcn: String): VirtualFile? {
+    override fun findClassFile(fqcn: String): ClassContent? {
         return findClassFileInModule(fqcn) ?: findClassInLibraries(fqcn)
     }
 
-    private fun findClassFileInModule(fqcn: String): VirtualFile? {
+    private fun findClassFileInModule(fqcn: String): ClassContent? {
         val rootPath = module.project.guessAospRoot() ?: return null
         val moduleSystem = module.getModuleSystem() as? BlueprintModuleSystem ?: return null
 
@@ -46,7 +47,7 @@ class BlueprintModuleClassFinder(
         }
     }
 
-    private fun findClassInLibraries(fqcn: String): VirtualFile? {
+    private fun findClassInLibraries(fqcn: String): ClassContent? {
         return ModuleRootManager.getInstance(module).orderEntries.asSequence().filterIsInstance(LibraryOrderEntry::class.java).flatMap {
             it.getFiles(OrderRootType.CLASSES).asSequence()
         }.mapNotNull {
@@ -54,7 +55,7 @@ class BlueprintModuleClassFinder(
         }.firstOrNull()
     }
 
-    private fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFile? {
+    private fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): ClassContent? {
         if (!outputRoot.exists()) return null
 
         val pathSegments = fqcn.split(".").toTypedArray()
@@ -64,6 +65,6 @@ class BlueprintModuleClassFinder(
         val classFile = VfsUtil.findRelativeFile(outputBase, *pathSegments)
             ?: VfsUtil.findFile(Paths.get(outputBase.path, *pathSegments), true)
 
-        return if (classFile != null && classFile.exists()) classFile else null
+        return if (classFile != null && classFile.exists()) ClassContent.loadFromFile(classFile.asFile()) else null
     }
 }

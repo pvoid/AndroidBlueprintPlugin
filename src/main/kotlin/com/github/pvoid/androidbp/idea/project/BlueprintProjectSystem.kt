@@ -34,10 +34,15 @@ import java.io.File
 import java.nio.file.Path
 
 class BlueprintProjectSystem(
-    private val project: Project,
+    override val project: Project,
     private val aospRoot: File
 ) : AndroidProjectSystem {
     override fun allowsFileCreation(): Boolean = false
+
+    override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
+//        moduleSystems.filter { (module, system) -> system.getApplicationIdProvider() }
+        return emptyList()
+    }
 
     private val moduleSystems = mutableMapOf<Module, BlueprintModuleSystem>()
 
@@ -86,6 +91,9 @@ class BlueprintProjectSystem(
     }
 
     override fun getDefaultApkFile(): VirtualFile? = null
+    override fun getKnownApplicationIds(): Set<String> {
+       return emptySet()
+    }
 
     override fun getLightResourceClassService(): LightResourceClassService = ProjectLightResourceClassService.getInstance(project)
 
@@ -103,6 +111,10 @@ class BlueprintProjectSystem(
 
     override fun getSyncManager(): ProjectSystemSyncManager {
         return syncManager
+    }
+
+    override fun isAndroidProject(): Boolean {
+       return true
     }
 
     override fun isNamespaceOrParentPackage(packageName: String): Boolean {

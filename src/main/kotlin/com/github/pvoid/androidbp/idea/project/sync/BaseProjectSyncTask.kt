@@ -155,7 +155,7 @@ internal abstract class BaseProjectSyncTask(
             }.map { (blueprint, facet) ->
                 // Despite all deprecation the property is used to build up local resources
                 // cache
-                facet.properties.RES_FOLDERS_RELATIVE_PATH = blueprint.resources(false).joinToString(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+                facet.properties.RES_FOLDER_RELATIVE_PATH = blueprint.resources(false).joinToString(";") { file ->
                     VfsUtilCore.pathToUrl(file)
                 }
                 facetsManager.facetConfigurationChanged(facet)

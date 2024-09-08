@@ -72,7 +72,7 @@ class BlueprintModuleSystem(
         }
     }
 
-    override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
+//    override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
 
     override fun getDirectResourceModuleDependents(): List<Module> {
         return ModuleManager.getInstance(module.project).getModuleDependentModules(module)
