@@ -10,7 +10,12 @@ from getopt import getopt, GetoptError
 from sys import argv
 from glob import glob
 
-REFERENCES_FIELD = ("required", "overrides", "defaults", "libs", "export_generated_headers", "export_header_lib_headers", "export_shared_lib_headers", "export_static_lib_headers", "generated_headers", "generated_sources")
+REFERENCES_FIELD = (
+    "dist",
+    "required", "overrides", "defaults", "libs", "export_generated_headers", "export_header_lib_headers",
+    "export_shared_lib_headers", "export_static_lib_headers", "generated_headers", "generated_sources"
+)
+
 
 class TextWriter:
     def __init__(self) -> None:
@@ -43,7 +48,7 @@ class XmlWriter:
     def start(self):
         self.out_.write("<blueprints>\n")
         self.ident_ += "    "
-    
+
     def end(self):
         self.out_.write("</blueprints>\n")
         self.ident_ = self.ident_[:-4]
@@ -80,30 +85,35 @@ class XmlWriter:
             return None
         elif type == "string":
             return "string"
-        elif type == "list of strings":
+        elif type == "list of strings" or type == "list of string" or type == "configurable list of string":
             if name in REFERENCES_FIELD:
                 return "blueprint[]"
             if name.endswith("_libs"):
                 return "blueprint[]"
             return "string[]"
-        elif type == "bool":
+        elif type == "bool" or type == "configurable bool" or type == "Configurable[bool]" or type == "proptools.Configurable[bool]":
             return "bool"
-        elif type == "StaticSharedLibraryProperties": # What is actualy it?
+        elif type == "StaticSharedLibraryProperties":  # What is actualy it?
             return "string[]"
-        elif type == "TestOptions": # What is actualy it?
+        elif type == "TestOptions":  # What is actualy it?
             return "string[]"
         elif type == "apexMultilibProperties":
             return "string[]"
         elif type == "int64":
             return "number"
-        elif type == "codegenArchProperties": # Should we define a type for them?
+        elif type == "codegenArchProperties":  # Should we define a type for them?
             return "string[]"
         elif type == "ApiToCheck":
             return "string"
         elif type == "VersionProperties":
             return "string[]"
+        elif type == "Dist":
+            return "string"
+        elif type == "list of Dist":
+            return "string[]"
 
-        raise ValueError("Not supported type: %s field: %s" % (type, name))
+        raise ValueError(f"Not supported type: '{type}' field: '{name}'")
+
 
 class BlueprintField:
     def __init__(self, tag):
@@ -111,7 +121,7 @@ class BlueprintField:
         self.type = tag["type"] if "type" in tag else None
         if "desc" in tag:
             desc = tag["desc"]
-            self.desc = desc[2:] if desc.startswith(", ") else desc                
+            self.desc = desc[2:] if desc.startswith(", ") else desc
         else:
             self.desc = None
         self.tag_ = tag
@@ -129,14 +139,14 @@ class BlueprintField:
         if size == 0:
             return None
         return self.fields[size - 1]
-    
+
     def is_container(self):
         return True if "class" in self.tag_ and self.tag_["class"] == "accordion" else False
 
     def field(self, name):
         if self.fields == None:
             return None
-        
+
         for field in self.fields:
             if field.name == name:
                 return field
@@ -215,26 +225,25 @@ class SoongDocParser(HTMLParser):
                     self.objects_stack_.append(last)
 
         self.stack_.append(info)
-    
+
     def handle_endtag(self, tag):
         if len(self.stack_) == 0:
             raise IOError("Unexpected tag",tag,"end")
-        
+
         current = self.stack_.pop()
         if current["tag"] != tag:
             raise IOError("Unexpected tag %s end. Current open tag is %s" % (tag ,current["tag"]))
-        
+
         if current["tag"] == "div":
             if "id" in current:
                 self.is_item_ = False
                 container = self.current_container_()
 
                 name = current["name"] if "name" in current else None
-                if current == None:
+                if current is None:
                     raise IOError("No field name")
 
-
-                if container != None:
+                if container is not None and name is not None:
                     point_index = name.find(".")
                     if point_index != -1:
                         for sub_name in name.split('.'):
@@ -264,7 +273,7 @@ class SoongDocParser(HTMLParser):
                         if items_poped > 1:
                             self.objects_stack_.append(last)
                         break
-    
+
     def handle_data(self, data):
         current = self.current_tag_()
         if current == None:
@@ -272,7 +281,7 @@ class SoongDocParser(HTMLParser):
 
         text = data.strip()
         if len(text) == 0:
-            return            
+            return
 
         if current["tag"] == "h2":
             blueprint = Blueprint(text)
@@ -285,7 +294,7 @@ class SoongDocParser(HTMLParser):
             if tag != None and not "type" in tag:
                 tag["type"] = text
             return
-        
+
         if current["tag"] == "b" and self.is_item_:
             tag = self.current_field_()
             if tag != None:
@@ -299,12 +308,12 @@ class SoongDocParser(HTMLParser):
             else:
                 current["desc"] = text
             return
-        
+
 
     def is_ignored_(self, tag):
         if tag == "link" or tag == "p":
             return True
-        
+
         return False
 
     def current_tag_(self):
@@ -335,7 +344,7 @@ def main(argv):
                 input_dir = arg
             elif opt == "--out":
                 out_file = arg
-        
+
         if input_dir == None:
             print("Input folder is not specified")
             return -1

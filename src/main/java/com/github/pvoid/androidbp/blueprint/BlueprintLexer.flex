@@ -83,6 +83,8 @@ CRLF=\R
 WHITE_SPACE=\s+
 END_OF_LINE_COMMENT=(\/\/)[^\r\n]*
 BLUEPRIN_NAME=(java_defaults|
+               java_aconfig_library|
+               aconfig_declarations|
                filegroup|
                java_library|
                java_library_host|
