@@ -7,8 +7,10 @@
 package com.github.pvoid.androidbp.idea.project
 
 import com.android.SdkConstants
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.module.Module
@@ -24,8 +26,9 @@ import java.nio.file.Paths
 class BlueprintModuleClassFinder(
     private val module: Module,
 ) : ClassFileFinder {
-    override fun findClassFile(fqcn: String): VirtualFile? {
-        return findClassFileInModule(fqcn) ?: findClassInLibraries(fqcn)
+    override fun findClassFile(fqcn: String): ClassContent? {
+        return (findClassFileInModule(fqcn) ?:
+            findClassInLibraries(fqcn))?.let { ClassContent.loadFromFile(it.toIoFile()) }
     }
 
     private fun findClassFileInModule(fqcn: String): VirtualFile? {

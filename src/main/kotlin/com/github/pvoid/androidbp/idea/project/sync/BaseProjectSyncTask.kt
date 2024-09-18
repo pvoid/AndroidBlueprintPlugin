@@ -144,22 +144,11 @@ internal abstract class BaseProjectSyncTask(
             blueprints.filter {
                 it.type == BlueprintType.AndroidApp || it.type == BlueprintType.AndroidLibrary
             }.mapNotNull { blueprint ->
-                val facet = facetsManager.getFacetsByType(AndroidFacet.ID).firstOrNull { facet ->
+                facetsManager.getFacetsByType(AndroidFacet.ID).firstOrNull { facet ->
                     facet.name == blueprint.name
                 } ?: module?.let {
                     createAndroidFacet(it, facetsModel, blueprint.name)
                 }
-                facet?.let {
-                    blueprint to it
-                }
-            }.map { (blueprint, facet) ->
-                // Despite all deprecation the property is used to build up local resources
-                // cache
-                facet.properties.RES_FOLDERS_RELATIVE_PATH = blueprint.resources(false).joinToString(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-                    VfsUtilCore.pathToUrl(file)
-                }
-                facetsManager.facetConfigurationChanged(facet)
-                facet
             }.also { facets ->
                 facetsModel.getFacetsByType(AndroidFacet.ID).filterNot { facet ->
                     facets.any { it.name == facet.name }

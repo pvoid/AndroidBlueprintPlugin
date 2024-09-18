@@ -34,7 +34,7 @@ import java.io.File
 import java.nio.file.Path
 
 class BlueprintProjectSystem(
-    private val project: Project,
+    override val project: Project,
     private val aospRoot: File
 ) : AndroidProjectSystem {
     override fun allowsFileCreation(): Boolean = false
@@ -116,4 +116,16 @@ class BlueprintProjectSystem(
 
     // TODO: Check if it worth to provide a real bootclass path i.e. out/target/product/<product>/system/framework/
     override fun getBootClasspath(module: Module): Collection<String> = emptySet()
+
+    override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
+        return moduleSystems.filter { (_, system) ->
+            system.blueprintByPackageName(applicationId) != null
+        }.map { (module, _) -> module }
+    }
+
+    override fun getKnownApplicationIds(): Set<String> = moduleSystems.values.flatMap { system ->
+        system.blueprints.mapNotNull { it.packageName() }
+    }.toSet()
+
+    override fun isAndroidProject(): Boolean = true
 }

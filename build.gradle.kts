@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.github.pvoid.androidbp.next"
-version = "1.0.0-RC12"
+version = "1.0.0-RC13"
 
 repositories {
     mavenCentral()
@@ -21,9 +21,9 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     type.set("IC")
-    version.set("2023.3.3")
+    version.set("2024.2.1")
 
-    plugins.set(listOf("java", "org.jetbrains.android:233.14015.106", "com.android.tools.design:233.13135.106"))
+    plugins.set(listOf("java", "org.jetbrains.android:242.21829.142", "com.android.tools.design:242.21829.142"))
     downloadSources.set(true)
     updateSinceUntilBuild.set(true)
 }
@@ -39,11 +39,11 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("231")
-        untilBuild.set("234.*")
+        sinceBuild.set("242")
+        untilBuild.set("242.*")
         changeNotes.set("""
         <ul>
-            <li>Add IDEA 2023.3 support</li>
+            <li>Add IDEA 2024.2.1 support</li>
         </ul>
         """.trimIndent())
 

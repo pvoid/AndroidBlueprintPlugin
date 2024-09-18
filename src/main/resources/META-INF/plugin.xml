@@ -37,6 +37,7 @@
         <!--lang.foldingBuilder language="Blueprint"
                              implementationClass="com.github.pvoid.androidbp.blueprint.BlueprintFoldingBuilder"/-->
         <notificationGroup id="AOSP Blueprint" displayType="BALLOON"/>
+        <sdkType implementation="com.github.pvoid.androidbp.idea.project.sdk.AospSdkType"/>
     </extensions>
 
     <projectListeners>

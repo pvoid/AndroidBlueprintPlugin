@@ -6,15 +6,7 @@
 
 package com.github.pvoid.androidbp.idea.project
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
-import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.SourceProviders
-import com.android.tools.idea.projectsystem.SourceProvidersFactory
-import com.android.tools.idea.projectsystem.SourceProvidersImpl
-import com.android.tools.idea.projectsystem.createMergedSourceProvider
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.blueprint.BlueprintType
 import com.github.pvoid.androidbp.idea.LOG
@@ -100,27 +92,27 @@ private class BlueprintSourceProviders(
 
     override val mainIdeaSourceProvider: NamedIdeaSourceProvider = provider
 
-    override val androidTestSources: IdeaSourceProvider = EmptyProvider
-
     override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
-
-    override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
 
     override val currentSourceProviders: List<NamedIdeaSourceProvider> = listOf(provider)
 
     override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
 
-    override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider> = emptyList()
-
-    override val generatedAndroidTestSources: IdeaSourceProvider = EmptyProvider
-
     override val generatedSources: IdeaSourceProvider = EmptyProvider
 
     override val generatedTestFixturesSources: IdeaSourceProvider = EmptyProvider
 
-    override val generatedUnitTestSources: IdeaSourceProvider = EmptyProvider
-
     override val testFixturesSources: IdeaSourceProvider = EmptyProvider
 
-    override val unitTestSources: IdeaSourceProvider = EmptyProvider
+    override val currentDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<NamedIdeaSourceProvider>> = emptyMap()
+
+    override val currentHostTestSourceProviders: Map<TestComponentType.HostTest, List<NamedIdeaSourceProvider>> = emptyMap()
+
+    override val deviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider> = emptyMap()
+
+    override val generatedDeviceTestSources: Map<TestComponentType.DeviceTest, IdeaSourceProvider> = emptyMap()
+
+    override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider> = emptyMap()
+
+    override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider> = emptyMap()
 }

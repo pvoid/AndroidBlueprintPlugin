@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.module.ModuleDependencies
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -38,6 +39,8 @@ class BlueprintModuleSystem(
 
     private var dependencies: List<BlueprintExternalLibrary> = emptyList()
 
+    private val moduleDependencies_ = BlueprintModuleDependencies(module)
+
     fun updateBlueprints(blueprints: List<Blueprint>) {
         this.blueprints = blueprints
     }
@@ -50,6 +53,7 @@ class BlueprintModuleSystem(
                 LibrariesTools.createAndroidLibrary(module.project, it)
             }
         }
+        moduleDependencies_.updateDependencies(dependencies)
     }
 
     fun dependenciesJars() = dependencies.flatMap { it.jars }.toList()
@@ -72,8 +76,6 @@ class BlueprintModuleSystem(
         }
     }
 
-    override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
-
     override fun getDirectResourceModuleDependents(): List<Module> {
         return ModuleManager.getInstance(module.project).getModuleDependentModules(module)
     }
@@ -81,7 +83,7 @@ class BlueprintModuleSystem(
     override fun getManifestOverrides(): ManifestOverrides {
         val overrides = mutableMapOf<ManifestSystemProperty, String>()
 
-        overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION] = "29"
+        overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION] = "29" // TODO: Use the real platform version
         overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION] = "29"
 
         return ManifestOverrides(
@@ -127,4 +129,6 @@ class BlueprintModuleSystem(
 
     override val submodules: Collection<Module>
         get() = getSubmodules(module.project, module)
+
+    override val moduleDependencies: ModuleDependencies = moduleDependencies_
 }

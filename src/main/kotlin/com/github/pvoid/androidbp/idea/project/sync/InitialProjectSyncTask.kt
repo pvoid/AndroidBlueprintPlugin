@@ -14,6 +14,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
 import com.github.pvoid.androidbp.idea.project.deprecated.BlueprintAndroidModel
 import com.github.pvoid.androidbp.idea.project.guessPlatformVersion
+import com.github.pvoid.androidbp.idea.project.sdk.AospSdkType
 import com.intellij.diagnostic.PluginException
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -23,7 +24,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.roots.ModuleRootManager
@@ -89,31 +89,32 @@ internal class InitialProjectSyncTask (
     }
 
     private fun setUpJdk(): Boolean {
-        val jdkPath = File(aospRoot.absolutePath, "prebuilts/jdk/jdk8/linux-x86")
         val manager = ProjectRootManager.getInstance(project)
-        var addSdk = false
 
         if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
             showSdkConfigurationNotification()
             return false
         }
-        val androidSdk = AndroidSdks.getInstance().allAndroidSdks.firstOrNull() ?: return false
+        val platformVersion = project.guessPlatformVersion() ?: return false
+        val androidSdk = AndroidSdks.getInstance().allAndroidSdks.first {
+            (it.sdkAdditionalData as? AndroidSdkAdditionalData)?.androidPlatform?.apiLevel == platformVersion
+        } ?: return false
 
-        var sdk = ProjectJdkTable.getInstance().allJdks.firstOrNull { it.homePath == jdkPath.absolutePath }
+        val jdksTable = ProjectJdkTable.getInstance()
+        var addSdk = false
+        var sdk = jdksTable.allJdks.firstOrNull { it.sdkType is AospSdkType && it.homePath == aospRoot.absolutePath }
         if (sdk == null) {
-            sdk = JavaSdk.getInstance().createJdk("AOSP JDK (API ${project.guessPlatformVersion()})", jdkPath.absolutePath, false)
+            sdk =  AospSdkType.getInstance().createJdk("AOSP JDK (API $platformVersion)", aospRoot.absolutePath, androidSdk)
             addSdk = true
+        } else if (sdk.sdkAdditionalData == null) {
+            AospSdkType.getInstance().updateAdditionalData(sdk, androidSdk)
         }
 
         return WriteAction.computeAndWait<Boolean, Throwable> {
-            if (addSdk) {
-                ProjectJdkTable.getInstance().addJdk(sdk)
-            }
             manager.projectSdk = sdk
-
-            sdk.sdkModificator.apply {
-                this.sdkAdditionalData = AndroidSdkAdditionalData(androidSdk)
-                commitChanges()
+            if (addSdk) {
+                jdksTable.addJdk(sdk)
+                jdksTable.saveOnDisk()
             }
 
             module?.apply {
@@ -121,6 +122,7 @@ internal class InitialProjectSyncTask (
                     getModuleExtension(
                         LanguageLevelModuleExtension::class.java
                     ).languageLevel = LanguageLevel.JDK_1_8
+                    inheritSdk()
                     commit()
                 }
             }
