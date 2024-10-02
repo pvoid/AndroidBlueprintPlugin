@@ -9,9 +9,7 @@ package com.github.pvoid.androidbp.idea.project.sdk
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.execution.wsl.WslPath
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.projectRoots.*
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.roots.OrderRootType
@@ -22,7 +20,6 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiManager
 import org.jdom.Element
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData
-import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.jps.model.java.impl.JavaSdkUtil
 import java.io.File
 import kotlin.io.path.Path
@@ -72,13 +69,6 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
 
     override fun createAdditionalDataConfigurable(sdkModel: SdkModel, sdkModificator: SdkModificator): AdditionalDataConfigurable? {
         return null // TODO:
-    }
-
-    override fun setupSdkPaths(sdk: Sdk, sdkModel: SdkModel): Boolean {
-//        val androidSdk = sdkModel.sdks.filter {
-//            it.sdkType == AndroidSdkType.getInstance()
-//        }.firstOrNull()
-        return false
     }
 
     override fun getPresentableName(): String = "AOSP JDK"

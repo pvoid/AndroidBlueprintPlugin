@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.github.pvoid.androidbp.next"
-version = "1.0.0-RC13"
+version = "1.0.0-RC14"
 
 repositories {
     mavenCentral()
@@ -21,7 +21,7 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     type.set("IC")
-    version.set("2024.2.1")
+    version.set("2024.2.3")
 
     plugins.set(listOf("java", "org.jetbrains.android:242.21829.142", "com.android.tools.design:242.21829.142"))
     downloadSources.set(true)
