@@ -9,6 +9,7 @@ package com.github.pvoid.androidbp.idea.project.sdk
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.execution.wsl.WslPath
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.*
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
@@ -109,7 +110,9 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
     fun updateAdditionalData(sdk: Sdk, androidSdk: Sdk) {
         val sdkModificator = sdk.sdkModificator
         updateAdditionalData(sdkModificator, getPlatformVersion(sdk), androidSdk)
-        sdkModificator.applyChangesWithoutWriteAction()
+        WriteAction.runAndWait<Throwable> {
+            sdkModificator.commitChanges()
+        }
     }
 
     private fun updateAdditionalData(sdkModificator: SdkModificator, platformVersion: Int?, androidSdk: Sdk) {
@@ -142,8 +145,10 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
         sdkModificator.addRoot(VfsUtil.getUrlForLibraryRoot(File(jdkPath, "src.zip")), OrderRootType.SOURCES)
 
         updateAdditionalData(sdkModificator, platformVersion, androidSdk)
-        sdkModificator.applyChangesWithoutWriteAction()
-        return jdk;
+        return WriteAction.computeAndWait<Sdk, Throwable> {
+            sdkModificator.commitChanges()
+            jdk
+        }
     }
 
     companion object {

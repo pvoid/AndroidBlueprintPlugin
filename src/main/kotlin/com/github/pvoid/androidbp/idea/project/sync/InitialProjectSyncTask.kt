@@ -111,11 +111,12 @@ internal class InitialProjectSyncTask (
         }
 
         return WriteAction.computeAndWait<Boolean, Throwable> {
-            manager.projectSdk = sdk
             if (addSdk) {
-                jdksTable.addJdk(sdk)
+                jdksTable.addJdk(sdk!!)
                 jdksTable.saveOnDisk()
+                sdk = jdksTable.allJdks.firstOrNull { it.sdkType is AospSdkType && it.homePath == aospRoot.absolutePath }
             }
+            manager.projectSdk = sdk
 
             module?.apply {
                 ModuleRootManager.getInstance(this).modifiableModel.apply{

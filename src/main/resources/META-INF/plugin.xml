@@ -10,7 +10,7 @@
     <vendor email="pointervoid@gmail.com" url="https://github.com/pvoid/AndroidBlueprintPlugin">Dmitry PVOID Petukhov</vendor>
 
     <description><![CDATA[
-    Adds support for android blueprints and allows to develop android apps as a part of ths system
+    Adds support for android blueprints and allows to develop android apps as a part of the system
     ]]></description>
 
     <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
