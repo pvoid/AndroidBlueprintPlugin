@@ -63,6 +63,10 @@ class BlueprintProjectSystem(
         }
     }
 
+    override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
+        return getAndroidFacetsWithPackageName(project, packageName)
+    }
+
     override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
     override fun getClassJarProvider(): ClassJarProvider {

@@ -7,11 +7,11 @@
 plugins {
     id("java")
     id("org.jetbrains.intellij") version "1.16.1"
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
+    id("org.jetbrains.kotlin.jvm") version "2.0.21"
 }
 
 group = "com.github.pvoid.androidbp.next"
-version = "1.0.0-RC14"
+version = "1.0.0-RC15"
 
 repositories {
     mavenCentral()
@@ -21,9 +21,9 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     type.set("IC")
-    version.set("2024.2.3")
+    version.set("2024.3")
 
-    plugins.set(listOf("java", "org.jetbrains.android:242.21829.142", "com.android.tools.design:242.21829.142"))
+    plugins.set(listOf("java", "org.jetbrains.android:243.21565.214", "com.android.tools.design:243.21565.214"))
     downloadSources.set(true)
     updateSinceUntilBuild.set(true)
 }
@@ -39,8 +39,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("242")
-        untilBuild.set("242.*")
+        sinceBuild.set("243")
         changeNotes.set("""
         <ul>
             <li>Add IDEA 2024.2.1 support</li>

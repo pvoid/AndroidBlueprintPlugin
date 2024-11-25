@@ -18,31 +18,22 @@ import java.io.File
 // NOTE: Must stay the same in all cost
 private const val PROJECT_SYSTEM_ID = "com.github.pvoid.androidbp.AospAndroidProjectSystem"
 
-class BlueprintProjectSystemProvider(
-    private val project: Project
-) : AndroidProjectSystemProvider {
-
-    private val aospRoot: File? = project.guessAospRoot()
-
-    private val projectSystemInstance by lazy {
-        if (aospRoot == null) {
-            throw AssertionError("AOSP root was not found. The project is not applicable")
-        }
-        BlueprintProjectSystem(project, aospRoot)
-    }
+class BlueprintProjectSystemProvider : AndroidProjectSystemProvider {
 
     override val id: String = PROJECT_SYSTEM_ID
 
-    override val projectSystem: AndroidProjectSystem
-        get() {
+    override fun projectSystemFactory(project: Project): AndroidProjectSystem {
+        val aospRoot: File = project.guessAospRoot()
+            ?: throw AssertionError("AOSP root was not found. The project is not applicable")
+        return BlueprintProjectSystem(project, aospRoot).also { projectSystemInstance ->
             projectSystemInstance.getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
-            return projectSystemInstance
         }
+    }
 
-    override fun isApplicable(): Boolean {
+    override fun isApplicable(project: Project): Boolean {
         val root = project.guessProjectDir() ?: return false
 
-        return aospRoot != null && root.children.asSequence().any {
+        return project.guessAospRoot() != null && root.children.asSequence().any {
             !it.isDirectory && it.isValid && (it.name == Blueprint.DEFAULT_NAME || it.name == Makefile.DEFAULT_NAME)
         }
     }

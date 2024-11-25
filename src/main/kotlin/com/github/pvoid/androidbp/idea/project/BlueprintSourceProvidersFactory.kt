@@ -50,14 +50,14 @@ class BlueprintSourceProvidersFactory : SourceProvidersFactory {
     private val emptyProvider = SourceProvidersImpl(
         mainIdeaSourceProvider = EmptyProvider,
         currentSourceProviders = emptyList(),
-        currentUnitTestSourceProviders = emptyList(),
-        currentAndroidTestSourceProviders = emptyList(),
+        currentHostTestSourceProviders = emptyMap(),
+        currentDeviceTestSourceProviders = emptyMap(),
         currentTestFixturesSourceProviders = emptyList(),
         currentAndSomeFrequentlyUsedInactiveSourceProviders = emptyList(),
         mainAndFlavorSourceProviders = emptyList(),
         generatedSources = createMergedSourceProvider(ScopeType.MAIN, emptyList()),
-        generatedUnitTestSources = createMergedSourceProvider(ScopeType.UNIT_TEST, emptyList()),
-        generatedAndroidTestSources = createMergedSourceProvider(ScopeType.ANDROID_TEST, emptyList()),
+        generatedHostTestSources = emptyMap(),
+        generatedDeviceTestSources = emptyMap(),
         generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList())
     )
 
