@@ -55,16 +55,12 @@ class BlueprintProjectSystem(
         AndroidResourceClassPsiElementFinder(getLightResourceClassService()),
     )
 
-    override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> {
+    override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
         val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
         return androidFacets.filter {
             val blueprint = (it.getModuleSystem() as? BlueprintModuleSystem)?.blueprintByPackageName(packageName)
             blueprint != null && it.name == blueprint.name
         }
-    }
-
-    override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
-        return getAndroidFacetsWithPackageName(project, packageName)
     }
 
     override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager

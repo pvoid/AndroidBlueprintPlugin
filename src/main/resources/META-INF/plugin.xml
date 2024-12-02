@@ -20,8 +20,15 @@
     <depends>org.jetbrains.android</depends>
     <depends>com.android.tools.design</depends>
 
+    <!--depends>com.intellij.modules.androidstudio</depends-->
+
     <extensions defaultExtensionNs="com.android.project">
         <projectsystem implementation="com.github.pvoid.androidbp.idea.project.BlueprintProjectSystemProvider"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.android.tools.idea">
+        <projectsystem.ApplicationProjectContextProvider implementation="com.github.pvoid.androidbp.idea.project.BlueprintApplicationProjectContextProvider"/>
+        <rendering.tokens.buildSystemFilePreviewServices implementation="com.github.pvoid.androidbp.idea.project.rendering.BlueprintBuildSystemFilePreviewService"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
