@@ -21,9 +21,9 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     type.set("IC")
-    version.set("2024.3")
+    version.set("2024.3.1")
 
-    plugins.set(listOf("java", "org.jetbrains.android:243.21565.214", "com.android.tools.design:243.21565.214"))
+    plugins.set(listOf("java", "org.jetbrains.android:243.22562.145", "com.android.tools.design:243.22562.145"))
     downloadSources.set(true)
     updateSinceUntilBuild.set(true)
 }

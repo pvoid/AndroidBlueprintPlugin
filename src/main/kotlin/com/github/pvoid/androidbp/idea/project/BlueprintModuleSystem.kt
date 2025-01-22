@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.module.ModuleDependencies
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.intellij.openapi.module.Module
@@ -114,7 +115,7 @@ class BlueprintModuleSystem(
     override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
 
     override fun getResourceModuleDependencies(): List<Module> =
-        AndroidUtils.getAndroidLibraryDependencies(module).map(AndroidFacet::getModule)
+        AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
     override fun getSampleDataDirectory(): PathString? = null
 

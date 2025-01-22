@@ -58,7 +58,8 @@ class BlueprintSourceProvidersFactory : SourceProvidersFactory {
         generatedSources = createMergedSourceProvider(ScopeType.MAIN, emptyList()),
         generatedHostTestSources = emptyMap(),
         generatedDeviceTestSources = emptyMap(),
-        generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList())
+        generatedTestFixturesSources = createMergedSourceProvider(ScopeType.TEST_FIXTURES, emptyList()),
+        allVariantAllArtifactsSourceProviders = emptyList()
     )
 
     private val cachedProviders = mutableMapOf<AndroidFacet, SourceProviders>()
@@ -115,4 +116,6 @@ private class BlueprintSourceProviders(
     override val generatedHostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider> = emptyMap()
 
     override val hostTestSources: Map<TestComponentType.HostTest, IdeaSourceProvider> = emptyMap()
+
+    override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider> = listOf(provider)
 }
