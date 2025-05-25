@@ -25,13 +25,11 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
-import java.nio.file.Path
 
 class BlueprintProjectSystem(
     override val project: Project,
@@ -85,8 +83,6 @@ class BlueprintProjectSystem(
         }
     }
 
-    override fun getDefaultApkFile(): VirtualFile? = null
-
     override fun getLightResourceClassService(): LightResourceClassService = ProjectLightResourceClassService.getInstance(project)
 
     override fun getModuleSystem(module: Module): AndroidModuleSystem {
@@ -94,8 +90,6 @@ class BlueprintProjectSystem(
             BlueprintModuleSystem(module)
         }
     }
-
-    override fun getPathToAapt(): Path = File(aospRoot, "prebuilts/sdk/tools/linux/bin/aapt").toPath()
 
     override fun getPsiElementFinders(): Collection<PsiElementFinder> = psiElementFinders
 

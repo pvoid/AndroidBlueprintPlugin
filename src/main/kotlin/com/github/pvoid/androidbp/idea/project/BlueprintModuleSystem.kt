@@ -69,8 +69,6 @@ class BlueprintModuleSystem(
         return Triple(emptyList(), dependenciesToAdd, "")
     }
 
-    override fun canGeneratePngFromVectorGraphics(): CapabilityStatus = CapabilityNotSupported()
-
     override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
         return synchronized(this) {
             dependencies
@@ -120,10 +118,6 @@ class BlueprintModuleSystem(
     override fun getSampleDataDirectory(): PathString? = null
 
     override fun canRegisterDependency(type: DependencyType): CapabilityStatus = CapabilityNotSupported()
-
-    override fun registerDependency(coordinate: GradleCoordinate) {
-        registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-    }
 
     override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     }

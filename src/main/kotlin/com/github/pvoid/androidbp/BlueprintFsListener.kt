@@ -25,7 +25,7 @@ class BlueprintFsListener(
         }.toList()
 
         if (files.isNotEmpty()) {
-            project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+            project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
 
             val table = BlueprintsTable.getInstance(project)
             files.asSequence().map { it.toIoFile() }.forEach(table::update)

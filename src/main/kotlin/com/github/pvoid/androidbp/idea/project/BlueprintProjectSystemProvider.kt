@@ -26,7 +26,7 @@ class BlueprintProjectSystemProvider : AndroidProjectSystemProvider {
         val aospRoot: File = project.guessAospRoot()
             ?: throw AssertionError("AOSP root was not found. The project is not applicable")
         return BlueprintProjectSystem(project, aospRoot).also { projectSystemInstance ->
-            projectSystemInstance.getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
+            projectSystemInstance.getSyncManager().requestSyncProject(SyncReason.PROJECT_LOADED)
         }
     }
 

@@ -12,7 +12,6 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
-import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager

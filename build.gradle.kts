@@ -6,40 +6,44 @@
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.16.1"
-    id("org.jetbrains.kotlin.jvm") version "2.0.21"
+    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.kotlin.jvm") version "2.1.21"
 }
 
 group = "com.github.pvoid.androidbp.next"
 version = "1.0.0-RC15"
+val androidPluginVersion = "251.25410.109"
 
 repositories {
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    type.set("IC")
-    version.set("2024.3.1")
-
-    plugins.set(listOf("java", "org.jetbrains.android:243.22562.145", "com.android.tools.design:243.22562.145"))
-    downloadSources.set(true)
-    updateSinceUntilBuild.set(true)
+dependencies {
+    implementation(kotlin("stdlib"))
+    intellijPlatform {
+        intellijIdeaCommunity("2025.1.1.1")
+        bundledPlugin("com.intellij.java")
+        plugin("org.jetbrains.android", androidPluginVersion)
+        plugin("com.android.tools.design", androidPluginVersion)
+    }
 }
 
 tasks {
     // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
-    }
+//    withType<JavaCompile> {
+//        sourceCompatibility = "17"
+//        targetCompatibility = "17"
+//    }
+//    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+//        kotlinOptions.jvmTarget = "17"
+//    }
 
     patchPluginXml {
-        sinceBuild.set("243")
+        sinceBuild.set("251")
         changeNotes.set("""
         <ul>
             <li>Add IDEA 2024.2.1 support</li>
@@ -61,7 +65,4 @@ tasks {
 
 java.sourceSets["main"].java {
     srcDir("src/main/gen")
-}
-dependencies {
-    implementation(kotlin("stdlib"))
 }

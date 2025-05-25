@@ -116,10 +116,13 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
     }
 
     private fun updateAdditionalData(sdkModificator: SdkModificator, platformVersion: Int?, androidSdk: Sdk) {
-        val sdkData = AndroidSdks.getSdkData(androidSdk)
-        val target = sdkData?.targets?.firstOrNull {
-            it.isPlatform && it.version.apiLevel == platformVersion
-        }
+        // Find target which matches platform version
+        val target = AndroidSdks.getInstance().allAndroidSdks.mapNotNull { sdk ->
+            (sdk.sdkAdditionalData as? AndroidSdkAdditionalData)?.androidPlatform
+        }.firstOrNull { platform ->
+            platform.apiLevel == platformVersion
+        }?.target
+
         sdkModificator.sdkAdditionalData = AndroidSdkAdditionalData(androidSdk).apply {
             setBuildTarget(target)
         }

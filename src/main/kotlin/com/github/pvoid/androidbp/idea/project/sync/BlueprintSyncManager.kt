@@ -53,6 +53,10 @@ class BlueprintSyncManager(
     }
 
     override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
+        return requestSyncProject(reason)
+    }
+
+    override fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
         return synchronized(mGuard) {
             var future = currentSync
 

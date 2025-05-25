@@ -7,13 +7,14 @@
 package com.github.pvoid.androidbp.idea.project.rendering
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemToken
-import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
-import com.github.pvoid.androidbp.idea.LOG
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.github.pvoid.androidbp.idea.project.BlueprintModuleClassFinder
 import com.github.pvoid.androidbp.idea.project.BlueprintProjectSystem
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
@@ -53,7 +54,24 @@ class BlueprintBuildSystemFilePreviewService : BuildSystemFilePreviewServices<Bl
                 throw UnsupportedOperationException()
             }
         }
+
+    override fun getApplicationLiveEditServices(buildTargetReference: BlueprintBuildTargetReference): ApplicationLiveEditServices {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRenderingServices(buildTargetReference: BlueprintBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
+        return BlueprintPreviewRenderingServices(buildTargetReference)
+    }
 }
 
 class BlueprintBuildTargetReference(override val module: Module) : BuildTargetReference {
+    override val moduleIfNotDisposed: Module? = if (module.isDisposed) null else module
+}
+
+class BlueprintPreviewRenderingServices(
+    private val buildTarget: BlueprintBuildTargetReference,
+) : BuildSystemFilePreviewServices.RenderingServices {
+    override val classFileFinder: ClassFileFinder? = buildTarget.moduleIfNotDisposed?.let {
+        BlueprintModuleClassFinder(it)
+    }
 }
