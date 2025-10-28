@@ -7,6 +7,7 @@
 package com.github.pvoid.androidbp.blueprint
 
 import com.android.ide.common.xml.AndroidManifestParser
+import com.github.pvoid.androidbp.idea.project.OutputPaths
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.tree.IElementType
 import java.io.File
@@ -180,44 +181,44 @@ class Blueprint(
         return result
     }
 
-    fun outputJars(rootPath: File): List<File> = when (type) {
+    fun outputJars(rootPath: OutputPaths): List<File> = when (type) {
         BlueprintType.AndroidLibrary -> {
             if (!isFromKati) {
-                var path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
+                var path = rootPath.getPath("$relativePath_/$name/android_common/turbine-combined/$name.jar")
                 if (!path.exists()) {
-                    path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
+                    path = rootPath.getPath("$relativePath_/$name/android_common/combined/$name.jar")
                 }
                 listOf(path)
             } else {
                 listOf(
-                    File(rootPath.parentFile.parentFile, "target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
+                    rootPath.getPath("target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
                 )
             }
         }
         BlueprintType.JavaLibrary, BlueprintType.JavaLibraryStatic, BlueprintType.JavaLibraryHost,
         BlueprintType.JavaSdk, BlueprintType.SyspropLibrary -> {
             if (!isFromKati) {
-                var path = File(rootPath, "$relativePath_/$name/android_common/combined/$name.jar")
+                var path = rootPath.getPath("$relativePath_/$name/android_common/combined/$name.jar")
                 if (!path.exists()) {
-                    path = File(rootPath, "$relativePath_/$name/android_common/turbine-combined/$name.jar")
+                    path = rootPath.getPath("$relativePath_/$name/android_common/turbine-combined/$name.jar")
                 }
             listOf(path)
             } else {
                 listOf(
-                    File(rootPath.parentFile.parentFile, "target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
+                    rootPath.getPath("target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
                 )
             }
         }
         BlueprintType.JavaImport, BlueprintType.JavaImportHost -> {
             members["jars"]?.toStringList()?.map { File(path, it) } ?: emptyList()
         }
-        BlueprintType.AidlInterface -> listOf(File(rootPath, "$relativePath_/$name-java/android_common/turbine-combined/$name-java.jar"))
+        BlueprintType.AidlInterface -> listOf(rootPath.getPath("$relativePath_/$name-java/android_common/turbine-combined/$name-java.jar"))
         BlueprintType.HidlInterface -> {
             val parts = name.split('@')
             if (parts.size != 2) {
                 emptyList()
             } else {
-                listOf(File(rootPath, "$relativePath_/${parts[0]}-V${parts[1]}-java/android_common/turbine-combined/${parts[0]}-V${parts[1]}-java.jar"))
+                listOf(rootPath.getPath("$relativePath_/${parts[0]}-V${parts[1]}-java/android_common/turbine-combined/${parts[0]}-V${parts[1]}-java.jar"))
             }
         }
         else -> emptyList()
@@ -227,21 +228,26 @@ class Blueprint(
         return members["srcs"]?.toSourcePaths(if (relative) relativePath_ else path.absolutePath) ?: emptyList()
     }
 
-    fun generatedSources(): List<String> = when (type) {
-        BlueprintType.AidlInterface -> listOf("$relativePath_/$name-java-source/gen/")
+    fun generatedSources(rootPath: OutputPaths): List<File> = when (type) {
+        BlueprintType.AidlInterface -> listOf(rootPath.getPath("$relativePath_/$name-java-source/gen/"))
         BlueprintType.HidlInterface -> {
             val parts = name.split('@')
             if (parts.size != 2) {
                 emptyList()
             } else {
-                listOf("$relativePath_/${parts[0]}-V${parts[1]}-java_gen_java/gen/srcs/")
+                listOf(rootPath.getPath("$relativePath_/${parts[0]}-V${parts[1]}-java_gen_java/gen/srcs/"))
             }
         }
         BlueprintType.SyspropLibrary -> {
-            val path = "$relativePath_/$name/android_common/gen/sysprop/$relativePath_/"
-            members["api_packages"]?.toStringList()?.map {
-                "$path/$it.srcjar"
-            }?.toList() ?: emptyList()
+            val path = rootPath.getPath("$relativePath_/$name/android_common/javac/$name.jar")
+            if (path.exists()) {
+                listOf(path)
+            } else {
+                val path = "$relativePath_/$name/android_common/gen/sysprop/$relativePath_/"
+                members["api_packages"]?.toStringList()?.map {
+                    rootPath.getPath("$path/$it.srcjar")
+                }?.toList() ?: emptyList()
+            }
         }
         else -> emptyList()
     }

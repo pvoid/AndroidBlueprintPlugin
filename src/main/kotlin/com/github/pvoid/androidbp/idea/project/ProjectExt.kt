@@ -9,6 +9,7 @@ package com.github.pvoid.androidbp.idea.project
 import com.android.tools.idea.util.toIoFile
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.github.pvoid.androidbp.blueprint.Makefile
+import com.github.pvoid.androidbp.idea.project.sdk.AospSdkType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import java.io.File
@@ -21,22 +22,7 @@ fun Project.guessAospRoot(): File? = generateSequence(guessProjectDir()?.toIoFil
 
 fun Project.guessPlatformVersion(): Int? {
     val path = guessAospRoot() ?: return null
-    val file = File(path, "build/make/core/version_defaults.mk")
-
-    val line = file.readLines().firstOrNull { line ->
-        line.trimStart(' ', '\t').startsWith("PLATFORM_SDK_VERSION")
-    } ?: return null
-
-    val parts = line.split(":=")
-    if (parts.size != 2) {
-        return null
-    }
-
-    return try {
-        parts[1].trim().toInt()
-    } catch (e: NumberFormatException) {
-        null
-    }
+    return AospSdkType.parsePlatformVersion(path.absolutePath)
 }
 
 fun Project.getProjectBlueprint(): File? {

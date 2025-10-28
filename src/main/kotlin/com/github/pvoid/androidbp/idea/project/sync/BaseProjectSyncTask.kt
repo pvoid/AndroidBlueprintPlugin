@@ -31,6 +31,7 @@ import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import java.io.File
+import java.nio.file.Files
 import java.util.*
 
 internal abstract class BaseProjectSyncTask(
@@ -80,8 +81,8 @@ internal abstract class BaseProjectSyncTask(
                         result.add(entry)
                     }
                 } else if (entry.isDirectory) {
-                    // Skip hidden and service folders
-                    if (!entry.name.startsWith(".")) {
+                    // Skip links, hidden and service folders
+                    if (!Files.isSymbolicLink(entry.toPath()) && !entry.name.startsWith(".")) {
                         folders.push(entry)
                     }
                 }
@@ -232,7 +233,7 @@ internal abstract class BaseProjectSyncTask(
     protected fun updateAndroidDependencies(aospRoot: File) {
         val table = BlueprintsTable.getInstance(project)
         val dependencies = mutableMapOf<String, AndroidDependencyRecord>()
-        val outputPath = LibrariesTools.getOutputPath(aospRoot)
+        val outputPath = SoongTools.getOutputPath(aospRoot)
         val queue = blueprints.flatMap {
             it.dependencies(DependenciesScope.All)
         }.mapNotNull(table::get)

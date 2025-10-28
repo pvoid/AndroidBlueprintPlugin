@@ -28,25 +28,6 @@ import kotlin.io.path.Path
 
 private val JDK_PATH = "prebuilts/jdk/jdk8/linux-x86/"
 
-private fun parsePlatformVersion(sdkHome: String): Int? {
-    val file = File(sdkHome, "build/make/core/version_defaults.mk")
-
-    val line = file.readLines().firstOrNull { line ->
-        line.trimStart(' ', '\t').startsWith("PLATFORM_SDK_VERSION")
-    } ?: return null
-
-    val parts = line.split(":=")
-    if (parts.size != 2) {
-        return null
-    }
-
-    return try {
-        parts[1].trim().toInt()
-    } catch (e: NumberFormatException) {
-        null
-    }
-}
-
 class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
 
     fun getPlatformVersion(sdk: Sdk): Int? = sdk.homePath?.let { parsePlatformVersion(it) }
@@ -59,6 +40,7 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
         return path + JDK_PATH
     }
 
+    @Deprecated("Deprecated in Java")
     override fun suggestHomePath(): String? = null
 
     override fun isValidSdkHome(path: String): Boolean {
@@ -160,5 +142,44 @@ class AospSdkType : SdkType("AOSP JDK"), JavaSdkType {
         private val INSTANCE = AospSdkType()
 
         fun getInstance() = INSTANCE
+
+        fun parsePlatformVersion(sdkHome: String): Int? {
+            File(sdkHome, "build/make/core/version_defaults.mk").takeIf { it.exists() }?.let { file ->
+                val line = file.readLines().firstOrNull { line ->
+                    line.trimStart(' ', '\t').startsWith("PLATFORM_SDK_VERSION")
+                } ?: return null
+
+                val parts = line.split(":=")
+                if (parts.size != 2) {
+                    return null
+                }
+
+                return try {
+                    parts[1].trim().toInt()
+                } catch (e: NumberFormatException) {
+                    null
+                }
+            }
+
+            File(sdkHome, "build/release/flag_values/trunk_staging/RELEASE_PLATFORM_SDK_VERSION.textproto").takeIf { it.exists() }?.let { file ->
+                // the code relies on the file format
+                val line = file.readLines().firstOrNull { line ->
+                    line.trimStart(' ', '\t').startsWith("string_value")
+                } ?: return null
+
+                val parts = line.split(":")
+                if (parts.size != 2) {
+                    return null
+                }
+
+                return try {
+                    parts[1].trim(' ', '"').toInt()
+                } catch (e: NumberFormatException) {
+                    null
+                }
+            }
+
+            return null
+        }
     }
 }

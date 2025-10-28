@@ -96,7 +96,7 @@ internal class InitialProjectSyncTask (
             return false
         }
         val platformVersion = project.guessPlatformVersion() ?: return false
-        val androidSdk = AndroidSdks.getInstance().allAndroidSdks.first {
+        val androidSdk = AndroidSdks.getInstance().allAndroidSdks.firstOrNull {
             (it.sdkAdditionalData as? AndroidSdkAdditionalData)?.androidPlatform?.apiLevel == platformVersion
         } ?: return false
 

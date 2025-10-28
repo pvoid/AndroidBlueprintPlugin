@@ -12,6 +12,7 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
+import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
@@ -31,15 +32,16 @@ class BlueprintModuleClassFinder(
     }
 
     private fun findClassFileInModule(fqcn: String): VirtualFile? {
-        val rootPath = module.project.guessAospRoot() ?: return null
+        val aospPath = module.project.guessAospRoot() ?: return null
+        val rootPath = SoongTools.getOutputPath(aospPath)
         val moduleSystem = module.getModuleSystem() as? BlueprintModuleSystem ?: return null
 
         return moduleSystem.blueprints.filter {
             it.isAndroidProject() || it.isJavaProject()
         }.flatMap {
             listOf(
-                File(rootPath, "$BUILD_CACHE_PATH/${it.relativePath}/android_common/javac/classes"),
-                File(rootPath, "$BUILD_CACHE_PATH/${it.relativePath}/android_common/kotlinc/classes"),
+                rootPath.getPath( "${it.relativePath}/android_common/javac/classes"),
+                rootPath.getPath( "${it.relativePath}/android_common/kotlinc/classes"),
             )
         }.mapNotNull {
             it.toVirtualFile()

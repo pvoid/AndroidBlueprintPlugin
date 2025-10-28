@@ -15,7 +15,6 @@ import com.github.pvoid.androidbp.idea.project.BlueprintModuleSystem
 import com.github.pvoid.androidbp.idea.project.guessPlatformVersion
 import org.jetbrains.android.facet.AndroidFacet
 
-@Deprecated("Deprecated, but still used by some parts of android plugin")
 class BlueprintAndroidModel(
     private val facet: AndroidFacet
 ) : AndroidModel {
@@ -24,26 +23,30 @@ class BlueprintAndroidModel(
         facet.module.project.guessPlatformVersion() ?: 1
     }
 
-    override fun getApplicationId(): String {
-        val moduleSystem = facet.getModuleSystem() as? BlueprintModuleSystem ?: return "com.example"
-        return moduleSystem.getPackageName() ?: "com.example"
+    override val isDebuggable: Boolean = true
+
+    override val allApplicationIds: Set<String>
+        get() = setOf(applicationId)
+
+    override val applicationId: String by lazy {
+        val moduleSystem = facet.getModuleSystem() as? BlueprintModuleSystem
+        moduleSystem?.getPackageName() ?: "com.example"
     }
 
-    override fun getAllApplicationIds(): Set<String> = setOf(applicationId)
+    override val desugaring: Set<Desugaring> = Desugaring.NONE
+
+    override val minSdkVersion: AndroidVersion
+        get() = AndroidVersion(platformVersion, null)
+
+    override val namespacing: Namespacing = Namespacing.DISABLED
+
+    override val runtimeMinSdkVersion: AndroidVersion
+        get() = AndroidVersion(platformVersion, null)
+
+    override val targetSdkVersion: AndroidVersion?
+        get() = AndroidVersion(platformVersion, null)
 
     override fun overridesManifestPackage(): Boolean = false
-
-    override fun isDebuggable(): Boolean = true
-
-    override fun getMinSdkVersion(): AndroidVersion = AndroidVersion(platformVersion, null)
-
-    override fun getRuntimeMinSdkVersion(): AndroidVersion = AndroidVersion(platformVersion, null)
-
-    override fun getTargetSdkVersion(): AndroidVersion = AndroidVersion(platformVersion, null)
-
-    override fun getNamespacing(): Namespacing = Namespacing.DISABLED
-
-    override fun getDesugaring(): Set<Desugaring> = Desugaring.NONE
 
     companion object {
         fun register(facet: AndroidFacet) {

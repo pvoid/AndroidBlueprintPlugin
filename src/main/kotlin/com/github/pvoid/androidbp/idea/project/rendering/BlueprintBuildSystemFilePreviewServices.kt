@@ -38,10 +38,8 @@ class BlueprintBuildSystemFilePreviewService : BuildSystemFilePreviewServices<Bl
 
     override val buildTargets: BuildTargets = object : BuildTargets {
         override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-            return fromModuleOnly(module)
+            return BlueprintBuildTargetReference(module)
         }
-
-        override fun fromModuleOnly(module: Module): BuildTargetReference = BlueprintBuildTargetReference(module)
     }
 
     override val buildServices: BuildSystemFilePreviewServices.BuildServices<BlueprintBuildTargetReference>
@@ -56,7 +54,7 @@ class BlueprintBuildSystemFilePreviewService : BuildSystemFilePreviewServices<Bl
         }
 
     override fun getApplicationLiveEditServices(buildTargetReference: BlueprintBuildTargetReference): ApplicationLiveEditServices {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException()
     }
 
     override fun getRenderingServices(buildTargetReference: BlueprintBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {

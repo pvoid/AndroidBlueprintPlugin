@@ -12,7 +12,6 @@ plugins {
 
 group = "com.github.pvoid.androidbp.next"
 version = "1.0.0-RC15"
-val androidPluginVersion = "251.25410.109"
 
 repositories {
     mavenCentral()
@@ -25,23 +24,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     intellijPlatform {
-        intellijIdeaCommunity("2025.1.1.1")
+        intellijIdeaCommunity("2025.2.4")
         bundledPlugin("com.intellij.java")
-        plugin("org.jetbrains.android", androidPluginVersion)
-        plugin("com.android.tools.design", androidPluginVersion)
+        plugin("org.jetbrains.android", "252.27397.103")
+        plugin("com.android.tools.design", "252.27397.28")
     }
 }
 
 tasks {
-    // Set the JVM compatibility versions
-//    withType<JavaCompile> {
-//        sourceCompatibility = "17"
-//        targetCompatibility = "17"
-//    }
-//    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-//        kotlinOptions.jvmTarget = "17"
-//    }
-
     patchPluginXml {
         sinceBuild.set("251")
         changeNotes.set("""

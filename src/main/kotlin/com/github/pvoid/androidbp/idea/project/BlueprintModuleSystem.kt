@@ -6,14 +6,12 @@
 
 package com.github.pvoid.androidbp.idea.project
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.ide.common.util.PathString
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.CapabilityNotSupported
-import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
@@ -28,8 +26,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
-import java.nio.file.Path
 
 class BlueprintModuleSystem(
     override val module: Module
@@ -65,10 +61,6 @@ class BlueprintModuleSystem(
 
     override val moduleClassFileFinder: ClassFileFinder = BlueprintModuleClassFinder(module)
 
-    override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
-        return Triple(emptyList(), dependenciesToAdd, "")
-    }
-
     override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
         return synchronized(this) {
             dependencies
@@ -81,9 +73,10 @@ class BlueprintModuleSystem(
 
     override fun getManifestOverrides(): ManifestOverrides {
         val overrides = mutableMapOf<ManifestSystemProperty, String>()
+        val version = module.project.guessPlatformVersion()?.toString() ?: "29"
 
-        overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION] = "29" // TODO: Use the real platform version
-        overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION] = "29"
+        overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION] = version
+        overrides[ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION] = version
 
         return ManifestOverrides(
             directOverrides = overrides
@@ -100,8 +93,6 @@ class BlueprintModuleSystem(
         }
     }
 
-    override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
-
     override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return GlobalSearchScope.allScope(module.project)
     }
@@ -110,20 +101,15 @@ class BlueprintModuleSystem(
 
     override val testRClassConstantIds: Boolean = false
 
-    override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
-
     override fun getResourceModuleDependencies(): List<Module> =
         AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
     override fun getSampleDataDirectory(): PathString? = null
 
-    override fun canRegisterDependency(type: DependencyType): CapabilityStatus = CapabilityNotSupported()
-
-    override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
-    }
-
     override val submodules: Collection<Module>
         get() = getSubmodules(module.project, module)
 
     override val moduleDependencies: ModuleDependencies = moduleDependencies_
+
+    override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean = false
 }

@@ -42,6 +42,8 @@ class BlueprintModuleDependencies(
         return result.toList()
     }
 
+    override fun dependsOnAndroidx(): Boolean = false
+
     fun updateDependencies(blueprints: Collection<BlueprintExternalLibrary>) {
         packages = blueprints.filter { it.hasResources }.mapNotNull { it.packageName }.toList()
     }

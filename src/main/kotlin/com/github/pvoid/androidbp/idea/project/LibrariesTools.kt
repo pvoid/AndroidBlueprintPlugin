@@ -15,6 +15,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.github.pvoid.androidbp.blueprint.Blueprint
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
 import com.github.pvoid.androidbp.blueprint.DependenciesScope
+import com.github.pvoid.androidbp.idea.LOG
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
@@ -29,7 +30,11 @@ import java.io.File
 import java.nio.file.Files
 import java.util.*
 
-const val BUILD_CACHE_PATH = "out/soong/.intermediates/"
+// TODO: Make the list configurable
+const val BUILD_CACHE_KATI_SYSTEM_PATH = "out_sys/target/common/obj/JAVA_LIBRARIES/"
+const val BUILD_CACHE_VENDOR_PATH = "out/soong/.intermediates/"
+const val BUILD_CACHE_KATI_VENDOR_PATH = "out/target/common/obj/JAVA_LIBRARIES/"
+const val BUILD_CACHE_SYSTEM_PATH = "out_sys/soong/.intermediates/"
 
 data class BlueprintExternalLibrary(
     override val address: String,
@@ -45,8 +50,6 @@ data class BlueprintExternalLibrary(
 ) : ExternalAndroidLibrary
 
 object LibrariesTools {
-    fun getOutputPath(rootPath: File) = File(rootPath, BUILD_CACHE_PATH)
-
     fun createLibrary(table: LibraryTable, blueprint: Blueprint, blueprintsTable: BlueprintsTable, rootPath: File): Library? {
         if (blueprint.name == "kotlin-stdlib") {
             return WriteAction.computeAndWait<Library, Throwable> {
@@ -58,7 +61,7 @@ object LibrariesTools {
                 lib
             }
         }
-        val outputPath = getOutputPath(rootPath)
+        val outputPath = SoongTools.getOutputPath(rootPath)
         val jars = blueprint.outputJars(outputPath)
         if (jars.isEmpty()) {
             return null
@@ -67,10 +70,12 @@ object LibrariesTools {
         val srcJars = mutableListOf<File>()
         val sources = mutableSetOf<File>()
         val queue = Stack<Blueprint>()
+        val processed = Stack<Blueprint>()
 
         queue.push(blueprint)
         while (queue.isNotEmpty()) {
             val bp = queue.pop()
+            processed.add(bp)
 
             if (bp.isJavaProject() || bp.isAndroidProject()) {
                 bp.sources().mapNotNull {
@@ -87,10 +92,10 @@ object LibrariesTools {
                 }.toCollection(sources)
             }
 
-            bp.generatedSources().map {
-                File(outputPath, it)
-            }.forEach {
-                if (it.isDirectory) {
+            bp.generatedSources(outputPath).forEach {
+                if (!it.exists()) {
+                    LOG.warn("Generated source archive $it does not exist for ${bp.name}")
+                } else if (it.isDirectory) {
                     sources.add(it)
                 } else if (it.extension == "jar") {
                     srcJars.add(it)
@@ -107,10 +112,14 @@ object LibrariesTools {
 
             bp.defaults().mapNotNull {
                 blueprintsTable[it]
+            }.filterNot {
+                it in processed
             }.toCollection(queue)
 
             bp.dependencies(DependenciesScope.Static).mapNotNull {
                 blueprintsTable[it]
+            }.filterNot {
+                it in processed
             }.toCollection(queue)
         }
 
@@ -136,7 +145,7 @@ object LibrariesTools {
 
     fun createAndroidLibrary(project: Project, dependency: AndroidDependencyRecord): BlueprintExternalLibrary? {
         val rootPath = project.guessAospRoot() ?: return null
-        val outputPath = File(rootPath, BUILD_CACHE_PATH)
+        val outputPath = SoongTools.getOutputPath(rootPath)
         val manifest = dependency.manifests.firstOrNull()?.toPathString() ?: return null
         val packageName = dependency.packageName ?: return null
 
@@ -146,10 +155,10 @@ object LibrariesTools {
                 manifestFile = manifest,
                 packageName = packageName,
                 resFolder = dependency.generatedRes.firstOrNull()?.let {
-                    RecursiveResourceFolder(File(outputPath, it).toPathString())
+                    RecursiveResourceFolder(outputPath.getPath(it).toPathString())
                 },
-                symbolFile = dependency.R.firstOrNull()?.let { File(outputPath, it) }?.toPathString(),
-                resApkFile = dependency.apk.firstOrNull()?.let { File(outputPath, it) }?.toPathString(),
+                symbolFile = dependency.R.firstOrNull()?.let { outputPath.getPath(it) }?.toPathString(),
+                resApkFile = dependency.apk.firstOrNull()?.let { outputPath.getPath(it) }?.toPathString(),
                 hasResources = true,
                 jars = dependency.jars,
                 location = null,
@@ -161,7 +170,7 @@ object LibrariesTools {
                 resFolder = dependency.res.firstOrNull()?.let {
                     RecursiveResourceFolder(File(it).toPathString())
                 },
-                assetsFolder = dependency.assets.firstOrNull()?.let {File(outputPath, it) }?.toPathString(),
+                assetsFolder = dependency.assets.firstOrNull()?.let {outputPath.getPath(it) }?.toPathString(),
                 manifestFile = manifest,
                 packageName = packageName,
                 hasResources = true,
@@ -177,18 +186,19 @@ object LibrariesTools {
 
     fun createAidlGenLibrary(project: Project, table: LibraryTable, blueprint: Blueprint): Library? {
         val aospRoot = project.guessAospRoot() ?: return null
+        val outputPath = SoongTools.getOutputPath(aospRoot)
 
         val aidls = blueprint.aidl_includes_local().mapNotNull { aidl ->
-            val src = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/gen/aidl/${blueprint.relativePath}").parent.let {
+            val src = outputPath.getPath("${blueprint.relativePath}/android_common/gen/aidl/${blueprint.relativePath}").parent.let {
                 File(it, aidl)
             }
-            val cls = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/javac/classes/")
+            val cls = outputPath.getPath("${blueprint.relativePath}/android_common/javac/classes/")
             cls.toVirtualFile()?.let {
                 it to src
             }
         } + blueprint.aidl_includes_global().mapNotNull { aidl ->
-            val src = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/gen/aidl/$aidl")
-            val cls = File(aospRoot, "${BUILD_CACHE_PATH}/${blueprint.relativePath}/android_common/javac/${blueprint.name}.jar")
+            val src = outputPath.getPath("${blueprint.relativePath}/android_common/gen/aidl/$aidl")
+            val cls = outputPath.getPath("${blueprint.relativePath}/android_common/javac/${blueprint.name}.jar")
             cls.toJarFileUrl()?.let {
                 it to src
             }
