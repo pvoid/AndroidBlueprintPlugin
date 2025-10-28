@@ -1,3 +1,5 @@
 build/
 .idea/
 .gradle/
+idea-flex.skeleton
+jflex-*.jar
