@@ -42,16 +42,18 @@ class FieldsXmlReader {
                     }
                     "field" -> {
                         val name = parser.getAttributeValue(null, "name")
-                            ?: throw FieldsXmlParseError("Missing field name")
+                            ?: throw FieldsXmlParseError("Missing field name at line ${parser.lineNumber}")
                         val type = parser.getAttributeValue(null, "type")
-                            ?: throw FieldsXmlParseError("Missing field type")
+                            ?: throw FieldsXmlParseError("Missing field type for field [$name] at line ${parser.lineNumber}")
                         val desc = parser.getAttributeValue(null, "descr") ?: ""
                         val field = when (type) {
                             "string" -> BlueprintStringField(name, desc)
                             "string[]" -> BlueprintStringListField(name, desc)
+                            "object[]" -> BlueprintObjectListField(name, desc)
                             "bool" -> BlueprintBooleanField(name, desc)
                             "number" -> BlueprintNumberField(name, desc)
                             "blueprint[]" -> BlueprintReferencesListField(name, desc)
+                            "object" -> BlueprintObjectField(name, desc, emptyList())
                             else -> throw FieldsXmlParseError("Unsupported field type [$type] at ${parser.lineNumber}")
                         }
                         stack.last().second.add(field)

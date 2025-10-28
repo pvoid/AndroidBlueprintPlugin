@@ -12,6 +12,44 @@ from glob import glob
 
 REFERENCES_FIELD = ("required", "overrides", "defaults", "libs", "export_generated_headers", "export_header_lib_headers", "export_shared_lib_headers", "export_static_lib_headers", "generated_headers", "generated_sources")
 
+TYPE_NAMES_STRING = (
+    "string",
+    "ApiToCheck",
+    "configurable string",
+
+)
+
+TYPE_NAMES_STRING_ARRAY = (
+    "StaticSharedLibraryProperties", # What is actualy it?
+    "TestOptions", # What is actualy it?
+    "apexMultilibProperties",
+    "codegenArchProperties", # Should we define a type for them?
+    "VersionProperties",
+    "list of Dist",
+    "FuzzFrameworks",
+    "LexProperties",
+
+    "YaccProperties",
+    "ConfigVarProperties",
+    "configurable list of string",
+    "list of string"
+)
+TYPE_NAMES_OBJECTS_ARRAY = (
+    "list of remapProperties",
+    "list of LibraryMappingProperty",
+    "list of symlinkDefinition",
+    "list of avbProp",
+    "list of avbProperty",
+    "list of *ast.SelectorExpr",
+    "list of ApexVariantReference",
+    "list of partitionProperties",
+    "list of groupProperties",
+    "list of chainedPartitionProperties",
+    "list of Metadata"
+)
+TYPE_NAMES_IGNORE = (
+)
+
 class TextWriter:
     def __init__(self) -> None:
         self.ident = ''
@@ -76,9 +114,9 @@ class XmlWriter:
         return text
 
     def convert_type_(self, name, type):
-        if type == None:
+        if (type is None) or (type in TYPE_NAMES_IGNORE):
             return None
-        elif type == "string":
+        elif type in TYPE_NAMES_STRING:
             return "string"
         elif type == "list of strings":
             if name in REFERENCES_FIELD:
@@ -86,22 +124,18 @@ class XmlWriter:
             if name.endswith("_libs"):
                 return "blueprint[]"
             return "string[]"
-        elif type == "bool":
+        elif (type == "bool") or (type == "configurable bool") or (type == "proptools.Configurable[bool]"):
             return "bool"
-        elif type == "StaticSharedLibraryProperties": # What is actualy it?
+        elif type in TYPE_NAMES_STRING_ARRAY:
             return "string[]"
-        elif type == "TestOptions": # What is actualy it?
-            return "string[]"
-        elif type == "apexMultilibProperties":
-            return "string[]"
+        elif type in TYPE_NAMES_OBJECTS_ARRAY:
+            return "object[]"
         elif type == "int64":
             return "number"
-        elif type == "codegenArchProperties": # Should we define a type for them?
-            return "string[]"
-        elif type == "ApiToCheck":
+        elif type == "interface":
             return "string"
-        elif type == "VersionProperties":
-            return "string[]"
+        elif type == "FuzzConfig":
+            return "object"
 
         raise ValueError("Not supported type: %s field: %s" % (type, name))
 
@@ -224,37 +258,37 @@ class SoongDocParser(HTMLParser):
         if current["tag"] != tag:
             raise IOError("Unexpected tag %s end. Current open tag is %s" % (tag ,current["tag"]))
         
-        if current["tag"] == "div":
+        if current["tag"] == "div" and "class" in current and current["class"] == "simple":
             if "id" in current:
                 self.is_item_ = False
                 container = self.current_container_()
 
-                name = current["name"] if "name" in current else None
-                if current == None:
+                if current is None:
                     raise IOError("No field name")
+                name = current["name"] if "name" in current else None
+                if name is None:
+                    name = current["id"] if "id" in current else None
 
+                point_index = name.find(".")
+                if point_index != -1:
+                    for sub_name in name.split('.'):
+                        if container.name == sub_name:
+                            continue
 
-                if container != None:
-                    point_index = name.find(".")
-                    if point_index != -1:
-                        for sub_name in name.split('.'):
-                            if container.name == sub_name:
-                                continue
-
-                            field = container.field(sub_name)
-                            if field == None:
-                                info = { "name" : sub_name, "tag" : "div", "class" : current["class"] }
-                                field = BlueprintField(info)
-                                container.add(field)
-                            container = field
-                            container.is_auto_added = True
-                            self.objects_stack_.append(container)
-                        # An ugly hack
-                        self.objects_stack_.pop()
-                        # print(' '.join(str(item) for item in self.objects_stack_))
-                    else:
-                        field = BlueprintField(current)
-                        container.add(field)
+                        field = container.field(sub_name)
+                        if field is None:
+                            info = { "name" : sub_name, "tag" : "div", "class" : current["class"] }
+                            field = BlueprintField(info)
+                            container.add(field)
+                        container = field
+                        container.is_auto_added = True
+                        self.objects_stack_.append(container)
+                    # An ugly hack
+                    self.objects_stack_.pop()
+                    # print(' '.join(str(item) for item in self.objects_stack_))
+                else:
+                    field = BlueprintField(current)
+                    container.add(field)
             elif "class" in current and current["class"] == "collapsible":
                 items_poped = 0
                 while True:
@@ -349,7 +383,7 @@ def main(argv):
             return -1
 
         if path.isdir(out_file):
-            print("There is a folder with the outputr file name %s" % out_file)
+            print("There is a folder with the output file name %s" % out_file)
             return -1
 
         out_dir = path.dirname(out_file)

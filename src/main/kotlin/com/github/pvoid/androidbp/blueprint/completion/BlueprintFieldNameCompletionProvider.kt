@@ -131,7 +131,7 @@ private class BlueprintFieldInsertHandler(
                 caretEndOffset = 1
                 caretStartOffset = caretEndOffset
             }
-            is BlueprintStringListField, is BlueprintReferencesListField -> {
+            is BlueprintStringListField, is BlueprintReferencesListField, is BlueprintObjectListField -> {
                 suffix.append("[  ]")
                 caretEndOffset = 2
                 caretStartOffset = caretEndOffset
