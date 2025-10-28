@@ -65,7 +65,6 @@ private class BlueprintIElementSymbolFactory : BlueprintSymbolFactory {
         BlueprintSymbolFactory.Token.FIELD_NAME -> BlueprintTypes.FIELD_NAME
         BlueprintSymbolFactory.Token.WHITE_SPACE -> BlueprintTypes.WHITE_SPACE
         BlueprintSymbolFactory.Token.ARRAY_START -> BlueprintTypes.ARRAY_START
-        else -> throw RuntimeException("Unexpected symbol #$type")
     } as T
 
     override fun skipSpaces(): Boolean = false
