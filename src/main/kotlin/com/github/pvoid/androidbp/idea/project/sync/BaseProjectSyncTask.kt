@@ -131,12 +131,6 @@ internal abstract class BaseProjectSyncTask(
         }.toMap()
     }
 
-    protected fun updateProjectBlueprints(): List<Blueprint> {
-        val moduleSystem = module?.getModuleSystem() as? BlueprintModuleSystem
-        moduleSystem?.updateBlueprints(blueprints)
-        return blueprints
-    }
-
     protected fun updateProjectFacets(): List<AndroidFacet> {
         val facetsManager = module?.let(FacetManager::getInstance) ?: return emptyList()
         val facetsModel = facetsManager.createModifiableModel()
@@ -230,53 +224,46 @@ internal abstract class BaseProjectSyncTask(
         }
     }
 
-    protected fun updateAndroidDependencies(aospRoot: File) {
+    protected fun updateProjectBlueprints() {
         val table = BlueprintsTable.getInstance(project)
-        val dependencies = mutableMapOf<String, AndroidDependencyRecord>()
-        val outputPath = SoongTools.getOutputPath(aospRoot)
-        val queue = blueprints.flatMap {
-            it.dependencies(DependenciesScope.All)
-        }.mapNotNull(table::get)
-        .filter { it.type == BlueprintType.AndroidApp || it.type == BlueprintType.AndroidLibrary }
-        .foldRight(mutableListOf<Blueprint>()) { blueprint, queue ->
-            queue.add(blueprint)
-            queue
-        }
+        val androidTypes = listOf(BlueprintType.AndroidApp, BlueprintType.AndroidLibrary, BlueprintType.AndroidImport)
+        val dependencies = mutableMapOf<String, Pair<DependenciesScope, Blueprint>>()
+        val queue = mutableListOf<Pair<DependenciesScope, Blueprint>>()
+
+        blueprints.flatMap { it.dependencies(DependenciesScope.Dynamic) }
+            .mapNotNull(table::get)
+            .map { DependenciesScope.Dynamic to it }
+            .forEach(queue::add)
+
+        blueprints.flatMap { it.dependencies(DependenciesScope.Static) }
+            .mapNotNull(table::get)
+            .map { DependenciesScope.Static to it }
+            .forEach(queue::add)
 
         while (queue.isNotEmpty()) {
-            val blueprint = queue.removeAt(0)
-            val record = AndroidDependencyRecord.Builder(blueprint.name)
-            val deps = blueprint.dependencies(DependenciesScope.All)
+            val (scope, blueprint) = queue.removeAt(0)
+
+            blueprint.dependencies(DependenciesScope.Dynamic)
                 .filterNot(dependencies::containsKey)
                 .mapNotNull(table::get)
+                .filter { it.type in androidTypes }
+                .map { DependenciesScope.Dynamic to it }
+                .forEach(queue::add)
 
+            blueprint.dependencies(DependenciesScope.Static)
+                .filterNot(dependencies::containsKey)
+                .mapNotNull(table::get)
+                .filter {
+                    it.type in androidTypes
+                }.map {
+                    DependenciesScope.Static to it
+                }.forEach(queue::add)
 
-            deps.filter { it.type == BlueprintType.AndroidApp || it.type == BlueprintType.AndroidLibrary }.forEach(queue::add)
-
-            blueprint.packageName()?.let(record::withPackageName)
-            blueprint.R()?.let(record::withR)
-            blueprint.assets().foldRight(record) { assets, r ->
-                r.withAssets(assets)
-            }
-            blueprint.resources(false).foldRight(record) { res, r ->
-                r.withRes(res)
-            }
-            blueprint.manifest()?.let(record::withManifest)
-            blueprint.outputJars(outputPath).forEach(record::withJar)
-
-            deps.filter { it.type == BlueprintType.AndroidImport }.forEach { lib ->
-                lib.generatedResources().foldRight(record) { res, r ->
-                    r.withGeneratedRes(res)
-                }
-                lib.resApk()?.let(record::withResApk)
-                lib.outputJars(outputPath).forEach(record::withJar)
-            }
-
-            dependencies[blueprint.name] = record.build()
+            dependencies[blueprint.name] = scope to blueprint
         }
 
         val moduleSystem = module?.getModuleSystem() as? BlueprintModuleSystem ?: return
-        moduleSystem.updateAndroidDependencies(dependencies.values)
+        moduleSystem.updateBlueprints(blueprints, dependencies.values)
     }
 
     protected fun updateSourceRoots() {
@@ -296,18 +283,18 @@ internal abstract class BaseProjectSyncTask(
 
             // resources
             blueprints.flatMap {
-                it.resources(false)
+                it.resources()
             }.mapNotNull {
-                File(it).toVirtualFile()
+                it.toVirtualFile()
             }.forEach { path ->
                 entry.addSourceFolder(path, JavaResourceRootType.RESOURCE)
             }
 
             // source code
             blueprints.flatMap {
-                it.sources(false)
+                it.sources()
             }.mapNotNull {
-                File(it).toVirtualFile()
+                it.toVirtualFile()
             }.forEach { path ->
                 entry.addSourceFolder(path, JavaSourceRootType.SOURCE)
             }

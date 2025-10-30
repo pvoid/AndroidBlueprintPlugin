@@ -63,25 +63,7 @@ class BlueprintProjectSystem(
 
     override fun getBuildManager(): ProjectSystemBuildManager = DefaultBuildManager
 
-    override fun getClassJarProvider(): ClassJarProvider {
-        return ClassJarProvider { module ->
-            val result = mutableListOf<File>()
-            moduleSystems[module]?.dependenciesJars()?.foldRight(result) { jar, r ->
-                r.add(jar)
-                r
-            }
-
-            AndroidRootUtil.getExternalLibraries(module)
-                .filterNotNull()
-                .map(VfsUtilCore::virtualToIoFile)
-                .foldRight(result) { jar, r ->
-                    r.add(jar)
-                    r
-                }
-
-            result
-        }
-    }
+    override fun getClassJarProvider(): ClassJarProvider = BlueprintClassJarProvider
 
     override fun getLightResourceClassService(): LightResourceClassService = ProjectLightResourceClassService.getInstance(project)
 

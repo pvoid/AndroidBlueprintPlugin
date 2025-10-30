@@ -79,13 +79,13 @@ object LibrariesTools {
 
             if (bp.isJavaProject() || bp.isAndroidProject()) {
                 bp.sources().mapNotNull {
-                    if (it[0] == ':') {
-                        blueprintsTable[it.substring(1)]?.let { link ->
+                    if (it.name[0] == ':') {
+                        blueprintsTable[it.name.substring(1)]?.let { link ->
                             queue.add(link)
                         }
                         null
                     } else {
-                        File(rootPath, it)
+                        it
                     }
                 }.filter {
                     it.isDirectory
@@ -143,9 +143,7 @@ object LibrariesTools {
         }
     }
 
-    fun createAndroidLibrary(project: Project, dependency: AndroidDependencyRecord): BlueprintExternalLibrary? {
-        val rootPath = project.guessAospRoot() ?: return null
-        val outputPath = SoongTools.getOutputPath(rootPath)
+    fun createAndroidLibrary(dependency: AndroidDependencyRecord): BlueprintExternalLibrary? {
         val manifest = dependency.manifests.firstOrNull()?.toPathString() ?: return null
         val packageName = dependency.packageName ?: return null
 
@@ -155,10 +153,10 @@ object LibrariesTools {
                 manifestFile = manifest,
                 packageName = packageName,
                 resFolder = dependency.generatedRes.firstOrNull()?.let {
-                    RecursiveResourceFolder(outputPath.getPath(it).toPathString())
+                    RecursiveResourceFolder(it.toPathString())
                 },
-                symbolFile = dependency.R.firstOrNull()?.let { outputPath.getPath(it) }?.toPathString(),
-                resApkFile = dependency.apk.firstOrNull()?.let { outputPath.getPath(it) }?.toPathString(),
+                symbolFile = dependency.R.firstOrNull()?.toPathString(),
+                resApkFile = dependency.apk.firstOrNull()?.toPathString(),
                 hasResources = true,
                 jars = dependency.jars,
                 location = null,
@@ -168,9 +166,9 @@ object LibrariesTools {
             BlueprintExternalLibrary(
                 address = dependency.name,
                 resFolder = dependency.res.firstOrNull()?.let {
-                    RecursiveResourceFolder(File(it).toPathString())
+                    RecursiveResourceFolder(it.toPathString())
                 },
-                assetsFolder = dependency.assets.firstOrNull()?.let {outputPath.getPath(it) }?.toPathString(),
+                assetsFolder = dependency.assets.firstOrNull()?.toPathString(),
                 manifestFile = manifest,
                 packageName = packageName,
                 hasResources = true,

@@ -8,7 +8,7 @@ package com.github.pvoid.androidbp.idea.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.github.pvoid.androidbp.idea.project.deprecated.BlueprintAndroidModel
+import com.github.pvoid.androidbp.idea.project.BlueprintAndroidModel
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -21,14 +21,10 @@ internal class OnChangeSyncTask(
     override fun run(indicator: ProgressIndicator) {
         indicator.text = "Updating project blueprints..."
         indicator.isIndeterminate = true
+        updateJavaDependencies(aospRoot)
         updateProjectBlueprints()
 
-        indicator.text = "Updating project dependencies..."
-        indicator.isIndeterminate = true
-        updateJavaDependencies(aospRoot)
-        updateAndroidDependencies(aospRoot)
         val facets = updateProjectFacets()
-
         indicator.text = "Updating source roots..."
         indicator.isIndeterminate = true
         updateSourceRoots()

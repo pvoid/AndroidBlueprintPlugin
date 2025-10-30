@@ -36,9 +36,9 @@ class BlueprintSourceProvider(
 
     override val assetsDirectories: Iterable<VirtualFile> get() {
         return moduleSystem.blueprints.flatMap {
-            it.assets(false)
+            it.assets()
         }.mapNotNull {
-            File(it).toVirtualFile()
+            it.toVirtualFile()
         }
     }
     override val assetsDirectoryUrls: Iterable<String>
@@ -50,9 +50,9 @@ class BlueprintSourceProvider(
         return moduleSystem.blueprints.filter {
             it.isAndroidProject() || it.isJavaProject()
         }.flatMap {
-            it.sources(false)
+            it.sources()
         }.mapNotNull {
-            File(it).toVirtualFile()
+            it.toVirtualFile()
         }
     }
     override val javaDirectoryUrls: Iterable<String>
@@ -82,9 +82,9 @@ class BlueprintSourceProvider(
 
     override val resDirectories: Iterable<VirtualFile> get() {
         return moduleSystem.blueprints.flatMap {
-            it.resources(false)
+            it.resources()
         }.mapNotNull {
-            File(it).toVirtualFile()
+            it.toVirtualFile()
         }
     }
     override val resDirectoryUrls: Iterable<String>

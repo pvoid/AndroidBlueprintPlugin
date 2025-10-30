@@ -95,21 +95,20 @@ class Blueprint(
         }
     }
 
-    fun resApk(): String? = when (type) {
-        BlueprintType.AndroidImport -> "$relativePath_/$name/android_common/package-res.apk"
-        else -> null
+    fun resApk(rootPath: OutputPaths): File? {
+        if (type in ANDROID_TYPES || type in ANDROID_IMPORT_TYPES) {
+            return rootPath.getPath("$relativePath_/$name/android_common/package-res.apk")
+        }
+        return null
     }
 
-    fun R(): String? {
+    fun R(rootPath: OutputPaths): File? {
         if (type !in ANDROID_TYPES) {
             return null
         }
 
-        return if (!isFromKati) {
-            "$relativePath_/$name/android_common/R.txt"
-        } else {
-            "../../target/common/obj/JAVA_LIBRARIES/${name}_intermediates/R.txt"
-        }
+        return rootPath.getPath("$relativePath_/$name/android_common/R.txt").takeIf(File::exists)
+            ?: rootPath.getPath("target/common/obj/JAVA_LIBRARIES/${name}_intermediates/R.txt")
     }
 
     fun packageName(): String? {
@@ -182,27 +181,14 @@ class Blueprint(
     }
 
     fun outputJars(rootPath: OutputPaths): List<File> = when (type) {
-        BlueprintType.AndroidLibrary -> {
-            if (!isFromKati) {
-                var path = rootPath.getPath("$relativePath_/$name/android_common/turbine-combined/$name.jar")
-                if (!path.exists()) {
-                    path = rootPath.getPath("$relativePath_/$name/android_common/combined/$name.jar")
-                }
-                listOf(path)
-            } else {
-                listOf(
-                    rootPath.getPath("target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
-                )
-            }
-        }
-        BlueprintType.JavaLibrary, BlueprintType.JavaLibraryStatic, BlueprintType.JavaLibraryHost,
-        BlueprintType.JavaSdk, BlueprintType.SyspropLibrary -> {
+        BlueprintType.AndroidLibrary, BlueprintType.JavaLibrary, BlueprintType.JavaLibraryStatic,
+        BlueprintType.JavaLibraryHost, BlueprintType.JavaSdk, BlueprintType.SyspropLibrary -> {
             if (!isFromKati) {
                 var path = rootPath.getPath("$relativePath_/$name/android_common/combined/$name.jar")
                 if (!path.exists()) {
                     path = rootPath.getPath("$relativePath_/$name/android_common/turbine-combined/$name.jar")
                 }
-            listOf(path)
+                listOf(path)
             } else {
                 listOf(
                     rootPath.getPath("target/common/obj/JAVA_LIBRARIES/${name}_intermediates/classes.jar")
@@ -224,8 +210,8 @@ class Blueprint(
         else -> emptyList()
     }
 
-    fun sources(relative: Boolean = true): List<String> {
-        return members["srcs"]?.toSourcePaths(if (relative) relativePath_ else path.absolutePath) ?: emptyList()
+    fun sources(): List<File> {
+        return members["srcs"]?.toSourcePaths(path.absolutePath)?.map { File(it) } ?: emptyList()
     }
 
     fun generatedSources(rootPath: OutputPaths): List<File> = when (type) {
@@ -252,19 +238,25 @@ class Blueprint(
         else -> emptyList()
     }
 
-    fun resources(relative: Boolean = true): List<String> = when (type) {
-        BlueprintType.AndroidApp, BlueprintType.AndroidLibrary -> (members["resource_dirs"]?.toStringList() ?: listOf("res")).toSourcePaths(if (relative) relativePath_ else path.absolutePath) ?: emptyList()
-        else -> emptyList()
+    fun resources(): List<File> {
+        if (type in ANDROID_TYPES) {
+            return (members["resource_dirs"]?.toStringList() ?: listOf("res")).toSourcePaths(path.absolutePath)?.map { File(it) } ?: emptyList()
+        }
+        return emptyList()
     }
 
-    fun generatedResources(): List<String> = when (type) {
-        BlueprintType.AndroidImport -> listOf("$relativePath_/$name/android_common/aar/")
-        else -> emptyList()
+    fun generatedResources(rootPath: OutputPaths): List<File> {
+        if (type in ANDROID_TYPES || type in ANDROID_IMPORT_TYPES) {
+            return listOf(rootPath.getPath("$relativePath_/$name/android_common/aar/")) // TODO: Check the path
+        }
+        return emptyList()
     }
 
-    fun assets(relative: Boolean = true): List<String> = when (type) {
-        BlueprintType.AndroidApp, BlueprintType.AndroidLibrary -> members["asset_dirs"]?.toSourcePaths(if (relative) relativePath_ else path.absolutePath) ?: emptyList()
-        else -> emptyList()
+    fun assets(): List<File> {
+        if (type in ANDROID_TYPES ) {
+            return members["asset_dirs"]?.toSourcePaths(path.absolutePath)?.map { File(it) } ?: emptyList()
+        }
+        return emptyList()
     }
 
     fun aidl_includes_local(): List<String> = when (type) {

@@ -4,15 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package com.github.pvoid.androidbp.idea.project.deprecated
+package com.github.pvoid.androidbp.idea.project
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.lint.detector.api.Desugaring
-import com.github.pvoid.androidbp.idea.project.BlueprintModuleSystem
-import com.github.pvoid.androidbp.idea.project.guessPlatformVersion
 import org.jetbrains.android.facet.AndroidFacet
 
 class BlueprintAndroidModel(
@@ -33,7 +31,7 @@ class BlueprintAndroidModel(
         moduleSystem?.getPackageName() ?: "com.example"
     }
 
-    override val desugaring: Set<Desugaring> = Desugaring.NONE
+    override val desugaring: Set<Desugaring> = Desugaring.Companion.NONE
 
     override val minSdkVersion: AndroidVersion
         get() = AndroidVersion(platformVersion, null)
@@ -50,7 +48,7 @@ class BlueprintAndroidModel(
 
     companion object {
         fun register(facet: AndroidFacet) {
-            AndroidModel.set(facet, BlueprintAndroidModel(facet))
+            AndroidModel.Companion.set(facet, BlueprintAndroidModel(facet))
         }
     }
 }

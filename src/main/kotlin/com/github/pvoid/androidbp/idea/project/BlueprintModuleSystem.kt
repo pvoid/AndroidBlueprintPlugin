@@ -14,13 +14,14 @@ import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyScopeType
-import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.module.ModuleDependencies
+import com.esotericsoftware.kryo.kryo5.minlog.Log
 import com.github.pvoid.androidbp.blueprint.Blueprint
+import com.github.pvoid.androidbp.blueprint.DependenciesScope
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,36 +35,76 @@ class BlueprintModuleSystem(
     var blueprints: List<Blueprint> = emptyList()
         private set
 
-    private var dependencies: List<BlueprintExternalLibrary> = emptyList()
+    private var dependencies: List<Pair<DependenciesScope, Blueprint>> = emptyList()
 
-    private val moduleDependencies_ = BlueprintModuleDependencies(module)
+    private val classFinder = BlueprintModuleClassFinder(module)
 
-    fun updateBlueprints(blueprints: List<Blueprint>) {
+    override val moduleDependencies: ModuleDependencies = BlueprintModuleDependencies(module)
+
+    fun updateBlueprints(blueprints: List<Blueprint>, dependencies: Collection<Pair<DependenciesScope, Blueprint>>) {
+        val deps = dependencies.filterNot { (_, blueprint) -> blueprint.packageName().isNullOrEmpty() }
         this.blueprints = blueprints
-    }
 
-    fun updateAndroidDependencies(blueprints: Collection<AndroidDependencyRecord>) {
         synchronized(this) {
-            dependencies = blueprints.filter {
-                it.isValid()
-            }.mapNotNull {
-                LibrariesTools.createAndroidLibrary(module.project, it)
-            }
+            this@BlueprintModuleSystem.dependencies = deps
         }
-        moduleDependencies_.updateDependencies(dependencies)
-    }
 
-    fun dependenciesJars() = dependencies.flatMap { it.jars }.toList()
+        deps.forEach { (scope, blueprint) ->
+            Log.warn("Android ${ if (scope == DependenciesScope.Static) "static" else "dynamic" } dependency registered - ${blueprint.packageName()}")
+        }
+
+        (moduleDependencies as BlueprintModuleDependencies).updateDependencies(blueprints, deps)
+        BlueprintClassJarProvider.updateExternalJars(module, deps)
+    }
 
     fun blueprintByPackageName(packageName: String): Blueprint? {
         return blueprints.firstOrNull { it.packageName() == packageName || packageName.startsWith("${it.packageName()}.") }
     }
 
-    override val moduleClassFileFinder: ClassFileFinder = BlueprintModuleClassFinder(module)
+    @Deprecated("ClassFileFinder needs to be requested in a context of a specific file.")
+    override val moduleClassFileFinder: ClassFileFinder = classFinder
 
     override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
-        return synchronized(this) {
+        val rootPath = module.project.guessAospRoot()?.let(SoongTools::getOutputPath)
+            ?: return emptyList()
+        val deps = synchronized(this) {
             dependencies
+        }
+
+        return deps.filter { (_, blueprint) ->
+            blueprint.isAndroidProject() || blueprint.isAndroidImport()
+        }.map { (_, blueprint) ->
+            val record = AndroidDependencyRecord.Builder(blueprint.name)
+                .withPackageName(blueprint.packageName())
+                .withR(blueprint.R(rootPath))
+                .withManifest(blueprint.manifest())
+
+            blueprint.outputJars(rootPath).filter { it.exists() }.foldRight(record) { jar, r ->
+                r.withJar(jar)
+            }
+
+            blueprint.assets().filter { it.exists() }.foldRight(record) { assets, r ->
+                r.withAssets(assets)
+            }
+
+            if (blueprint.isAndroidImport()) {
+                blueprint.resApk(rootPath)?.takeIf { it.exists() }?.also { record.withResApk(it) }
+                blueprint.generatedResources(rootPath).filter { it.exists() }.foldRight(record) { res, r ->
+                    r.withGeneratedRes(res)
+                }
+            } else {
+                blueprint.resources().filter { it.exists() }.foldRight(record) { res, r ->
+                    r.withRes(res)
+                }
+            }
+
+            record.build()
+        }.mapNotNull {
+            if (it.R.isNotEmpty()) {
+                LibrariesTools.createAndroidLibrary(it)
+            } else {
+                null
+            }
         }
     }
 
@@ -108,8 +149,6 @@ class BlueprintModuleSystem(
 
     override val submodules: Collection<Module>
         get() = getSubmodules(module.project, module)
-
-    override val moduleDependencies: ModuleDependencies = moduleDependencies_
 
     override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean = false
 }

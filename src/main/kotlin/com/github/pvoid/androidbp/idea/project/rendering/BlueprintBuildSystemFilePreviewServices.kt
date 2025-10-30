@@ -16,6 +16,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.github.pvoid.androidbp.idea.project.BlueprintModuleClassFinder
 import com.github.pvoid.androidbp.idea.project.BlueprintProjectSystem
+import com.github.pvoid.androidbp.idea.project.SoongTools
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -33,7 +34,7 @@ class BlueprintBuildSystemFilePreviewService : BuildSystemFilePreviewServices<Bl
     }
 
     override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildSystemFilePreviewServices.BuildListener) {
-        throw UnsupportedOperationException()
+        SoongTools.subscribeBuildListener(listener)
     }
 
     override val buildTargets: BuildTargets = object : BuildTargets {

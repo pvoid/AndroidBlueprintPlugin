@@ -6,6 +6,7 @@
 
 package com.github.pvoid.androidbp.idea.project
 
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
 import java.io.File
 
 class OutputPaths(rootPath: File) {
@@ -62,4 +63,10 @@ fun String.isHexString(): Boolean = this.all {
 
 object SoongTools {
     fun getOutputPath(rootPath: File) = OutputPaths(rootPath)
+
+    fun subscribeBuildListener(listener: BuildSystemFilePreviewServices.BuildListener) {
+        // NOTE: Preview wants to know when the class was rebuilt and expects that it happens in background
+        // while editing happens (thank you compose). We don't know how to build the project so can't implement it,
+        // but at least in the future can monitor the file system
+    }
 }

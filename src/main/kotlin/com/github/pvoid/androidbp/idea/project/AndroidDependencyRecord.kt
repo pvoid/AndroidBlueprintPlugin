@@ -11,12 +11,12 @@ import java.io.File
 data class AndroidDependencyRecord(
     val name: String,
     val packageName: String?,
-    val apk: List<String>,
-    val res: List<String>,
-    val generatedRes: List<String>,
+    val apk: List<File>,
+    val res: List<File>,
+    val generatedRes: List<File>,
     val manifests: List<File>,
-    val assets: List<String>,
-    val R: List<String>,
+    val assets: List<File>,
+    val R: List<File>,
     val jars: List<File>,
 ) {
     fun isValid(): Boolean {
@@ -26,52 +26,68 @@ data class AndroidDependencyRecord(
     class Builder(
         val name: String
     ) {
-        private val apk = mutableListOf<String>()
+        private val apk = mutableListOf<File>()
         private var packageName: String? = null
-        private val res = mutableListOf<String>()
-        private val generatedRes = mutableListOf<String>()
+        private val res = mutableListOf<File>()
+        private val generatedRes = mutableListOf<File>()
         private val manifests = mutableListOf<File>()
-        private val assets = mutableListOf<String>()
-        private val R = mutableListOf<String>()
+        private val assets = mutableListOf<File>()
+        private val R = mutableListOf<File>()
         private val jars = mutableListOf<File>()
 
-        fun withResApk(apk: String): Builder {
-            this.apk.add(apk)
+        fun withResApk(apk: File?): Builder {
+            if (apk != null) {
+                this.apk.add(apk)
+            }
             return this
         }
 
-        fun withRes(res: String): Builder {
-            this.res.add(res)
+        fun withRes(res: File?): Builder {
+            if (res != null) {
+                this.res.add(res)
+            }
             return this
         }
 
-        fun withGeneratedRes(res: String): Builder {
-            this.generatedRes.add(res)
+        fun withGeneratedRes(res: File?): Builder {
+            if (res != null) {
+                this.generatedRes.add(res)
+            }
             return this
         }
 
-        fun withManifest(manifest: File): Builder {
-            this.manifests.add(manifest)
+        fun withManifest(manifest: File?): Builder {
+            if (manifest != null) {
+                this.manifests.add(manifest)
+            }
             return this
         }
 
-        fun withAssets(assets: String): Builder {
-            this.assets.add(assets)
+        fun withAssets(assets: File?): Builder {
+            if (assets != null) {
+                this.assets.add(assets)
+            }
             return this
         }
 
-        fun withR(R: String): Builder {
-            this.R.add(R)
+        fun withR(R: File?): Builder {
+            if (R != null) {
+                this.R.add(R)
+            }
             return this
         }
 
-        fun withPackageName(packageName: String): Builder {
-            this.packageName = packageName
+        fun withPackageName(packageName: String?): Builder {
+            if (packageName != null) {
+                this.packageName = packageName
+            }
             return this
         }
 
-        fun withJar(jar: File): Builder {
-            this.jars.add(jar)
+        fun withJar(jar: File?): Builder {
+            if (jar != null) {
+                this.jars.add(jar)
+            }
             return this
         }
 

@@ -12,7 +12,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.github.pvoid.androidbp.blueprint.BlueprintsTable
-import com.github.pvoid.androidbp.idea.project.deprecated.BlueprintAndroidModel
+import com.github.pvoid.androidbp.idea.project.BlueprintAndroidModel
 import com.github.pvoid.androidbp.idea.project.guessPlatformVersion
 import com.github.pvoid.androidbp.idea.project.sdk.AospSdkType
 import com.intellij.diagnostic.PluginException
@@ -66,12 +66,8 @@ internal class InitialProjectSyncTask (
 
         indicator.text = "Updating project blueprints..."
         indicator.isIndeterminate = true
-        updateProjectBlueprints()
-
-        indicator.text = "Updating project dependencies..."
-        indicator.isIndeterminate = true
         updateJavaDependencies(aospRoot)
-        updateAndroidDependencies(aospRoot)
+        updateProjectBlueprints()
         val facets = updateProjectFacets()
 
         indicator.text = "Updating source roots..."
